@@ -1,7 +1,7 @@
 import { View } from '../lib/view'
 import { CustomScene } from '../packages/custom-scene/custom-scene'
 import { PerformanceMonitor } from '../packages/fps-counter'
-import { createProvinceGlobe, type MapColorMode, type ProvinceGlobeResult } from '../packages/globe'
+import { ProvinceGlobe, type MapColorMode } from '../packages/globe'
 import { KeyboardControls } from '../packages/keyboard-control'
 import { MapParser } from '../packages/map-parser'
 import { MouseControls } from '../packages/mouse-controls'
@@ -26,7 +26,7 @@ export class MapView extends View {
   private mouseControls!: MouseControls 
   private orbit!: OrbitControl
   
-  private map: ProvinceGlobeResult | null = null
+  private map: ProvinceGlobe | null = null
   private monitor!: PerformanceMonitor 
   private objects: Object3D[] = []
   
@@ -79,7 +79,7 @@ export class MapView extends View {
       
       if (status === 'done' && data) {
         this.map?.dispose()
-        this.map = createProvinceGlobe(data, {
+        this.map = new ProvinceGlobe(data, {
           radius: 1.0,
           widthSegments: 128,
           heightSegments: 64,
