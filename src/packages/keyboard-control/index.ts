@@ -36,3 +36,4 @@ export class KeyboardControls {
     window.removeEventListener('keyup', this.handleKeyUp)
   }
 }
+
