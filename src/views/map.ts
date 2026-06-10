@@ -6,7 +6,8 @@ import { KeyboardControls } from '../packages/keyboard-control'
 import { MapParser } from '../packages/map-parser'
 import { MouseControls } from '../packages/mouse-controls'
 import { OrbitControl, type InputState } from '../packages/orbit-control'
-import { PerspectiveCamera, Object3D } from 'three'
+import { PerspectiveCamera, Object3D, Raycaster, Vector2 } from 'three'
+import { GenericTextBox } from '../packages/text-box'
 
 const MOCK_API = ''
 const AVAILABLE_FILES = [
@@ -34,6 +35,10 @@ export class MapView extends View {
   private parser!: MapParser
   private colorMode: MapColorMode = 'province'
 
+  private textBox!: GenericTextBox
+  private raycaster = new Raycaster()
+  private mouse = new Vector2()
+
   constructor(container: HTMLElement) {
     super(container)
   }
@@ -58,10 +63,40 @@ export class MapView extends View {
     this.keyboard = new KeyboardControls()
     this.mouseControls = new MouseControls(container)
     this.orbit = new OrbitControl(5)
+    
+    this.mouseControls.onClick(this.onClick)
+  }
+
+  private onClick = (event: MouseEvent) => {
+    if (!this.container) return
+    const rect = this.container.getBoundingClientRect()
+    this.mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1
+    this.mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1
+
+    this.raycaster.setFromCamera(this.mouse, this.camera)
+
+    if (!this.map?.group) return
+
+    const intersects = this.raycaster.intersectObject(this.map.group, true)
+    
+    if (intersects.length > 0) {
+      const hit = intersects.find(i => i.object.name === 'province-sphere')
+      if (hit && hit.uv) {
+        const u = hit.uv.x
+        const v = hit.uv.y
+
+        const provinceId = this.map.pickProvinceAt(u, v)
+        if (provinceId > 0) {
+          this.map.selectProvince(provinceId)
+          this.textBox?.setText(`Selected Province ID: ${provinceId}`)
+        }
+      }
+    }
   }
 
   private setupObjects(): void {
     this.monitor = new PerformanceMonitor(this.container!)
+    this.textBox = new GenericTextBox(this.container!, 'No province selected')
   }
 
   private setupScene(container: HTMLElement): void {
@@ -134,6 +169,7 @@ export class MapView extends View {
     this.parser.dispose()
     this.map?.dispose()
     this.monitor.dispose()
+    this.textBox?.dispose()
   }
 
   setColorMode(mode: MapColorMode): void {

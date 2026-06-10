@@ -1,5 +1,7 @@
 export class MouseControls {
   private isDragging: boolean = false;
+  private startX: number = 0;
+  private startY: number = 0;
   
   // Acumuladores de movimento
   private dragDeltaX: number = 0;
@@ -8,19 +10,37 @@ export class MouseControls {
 
   // Elemento alvo (pode ser o window, document, ou um canvas específico)
   private target: HTMLElement | Window;
+  private onClickCallback?: (e: MouseEvent) => void;
 
   constructor(target: HTMLElement | Window = window) {
     this.target = target;
     this.attachEvents();
   }
 
+  public onClick(callback: (e: MouseEvent) => void): void {
+    this.onClickCallback = callback;
+  }
+
   // Arrow functions preservam o contexto do 'this'
-  private onMouseDown = (): void => {
+  private onMouseDown = (e: Event): void => {
+    const mouseEvent = e as MouseEvent;
     this.isDragging = true;
+    this.startX = mouseEvent.clientX;
+    this.startY = mouseEvent.clientY;
   };
 
-  private onMouseUp = (): void => {
+  private onMouseUp = (e: Event): void => {
+    const mouseEvent = e as MouseEvent;
     this.isDragging = false;
+
+    const dx = mouseEvent.clientX - this.startX;
+    const dy = mouseEvent.clientY - this.startY;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+
+    // Se o arraste foi insignificante (menos de 5 pixels), trata-se de um clique
+    if (dist < 5 && this.onClickCallback) {
+      this.onClickCallback(mouseEvent);
+    }
   };
 
   private onMouseMove = (e: Event): void => {

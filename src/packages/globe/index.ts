@@ -106,7 +106,7 @@ export class ProvinceGlobe {
     
     // O bitmap é top-down, então invertemos o V mapeado
     const x = Math.floor(u * this.mapWidth);
-    const y = Math.floor((1 - mappedV) * this.mapHeight); 
+    const y = Math.floor(mappedV * this.mapHeight); 
     const clampedX = Math.max(0, Math.min(this.mapWidth - 1, x));
     const clampedY = Math.max(0, Math.min(this.mapHeight - 1, y));
     return this.idBuffer[clampedY * this.mapWidth + clampedX] ?? 0;
