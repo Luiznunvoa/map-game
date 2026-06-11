@@ -1,13 +1,18 @@
 import type { ProvinceId } from "../parser/index.js";
 import type { GlobeMapInput, MapColorMode, NormalizedColor } from "./types.js";
 
+const TERRAIN_DEFAULT: NormalizedColor = [0.50, 0.50, 0.50];
+const TERRAIN_SEA: NormalizedColor = [0.08, 0.18, 0.40];
+
 const TERRAIN_PALETTE: Record<string, NormalizedColor> = {
   ocean:      [0.08, 0.18, 0.40],
   arctic:     [0.92, 0.92, 0.95],
   farmlands:  [0.54, 0.41, 0.65],
-  forest:     [0.36, 0.48, 0.18],
+
+  forest:     [0.33, 0.62, 0.24], // verde médio
+  woods:      [0.55, 0.82, 0.42], // verde claro
+
   hills:      [0.53, 0.27, 0.00],
-  woods:      [0.65, 0.80, 0.42],
   mountain:   [0.46, 0.42, 0.47],
   plains:     [0.87, 0.83, 0.60],
   desert:     [0.95, 0.83, 0.53],
@@ -16,17 +21,14 @@ const TERRAIN_PALETTE: Record<string, NormalizedColor> = {
   steppe:     [0.76, 0.80, 0.45],
 };
 
-const TERRAIN_DEFAULT: NormalizedColor = [0.50, 0.50, 0.50];
-const TERRAIN_SEA: NormalizedColor = [0.08, 0.18, 0.40];
-
 const CONTINENT_COLORS: NormalizedColor[] = [
-  [0.78, 0.31, 0.31], // Europe        — vermelho suave
-  [0.31, 0.60, 0.78], // Asia          — azul
-  [0.78, 0.60, 0.31], // Africa        — âmbar
-  [0.47, 0.78, 0.31], // North America — verde
-  [0.60, 0.31, 0.78], // South America — roxo
-  [0.31, 0.78, 0.60], // Oceania       — turquesa
-  [0.78, 0.78, 0.31], // Antarctica    — amarelo
+  [0.78, 0.31, 0.31], // Europe
+  [0.31, 0.60, 0.78], // Asia
+  [0.78, 0.60, 0.31], // Africa
+  [0.33, 0.62, 0.24], // North America
+  [0.60, 0.31, 0.78], // South America
+  [0.31, 0.78, 0.60], // Oceania
+  [0.78, 0.78, 0.31], // Antarctica
 ];
 
 function mix(a: number, b: number, t: number): number {
@@ -137,7 +139,15 @@ function fillByTerrain(
 
     const overrideName = terrain.overrides.get(id);
     const colorName = overrideName ?? "plains";
-    const color = TERRAIN_PALETTE[colorName] ?? TERRAIN_DEFAULT;
+
+    // Busca a cor dinâmica do terrain.txt, se existir
+    const cat = terrain.categories.get(colorName);
+    let color: NormalizedColor;
+    if (cat) {
+      color = [cat.color[0] / 255, cat.color[1] / 255, cat.color[2] / 255];
+    } else {
+      color = TERRAIN_PALETTE[colorName] ?? TERRAIN_DEFAULT;
+    }
 
     paletteData[base] = color[0];
     paletteData[base + 1] = color[1];
@@ -179,13 +189,18 @@ function fillByContinent(
   }
 }
 
-export function floatRgbToRgbaBytes(rgb: Float32Array, count: number): Uint8Array {
+export function floatRgbToRgbaBytes(
+  rgb: Float32Array,
+  count: number,
+  seaStarts: Set<number>
+): Uint8Array {
   const out = new Uint8Array(count * 4);
   for (let i = 0; i < count; i++) {
     out[i * 4 + 0] = Math.min(255, Math.round(rgb[i * 3 + 0] * 255));
     out[i * 4 + 1] = Math.min(255, Math.round(rgb[i * 3 + 1] * 255));
     out[i * 4 + 2] = Math.min(255, Math.round(rgb[i * 3 + 2] * 255));
-    out[i * 4 + 3] = 255;
+    // Se for ID 0 ou estiver em seaStarts, alpha = 0 (mar). Caso contrário, 255 (terra)
+    out[i * 4 + 3] = (i === 0 || seaStarts.has(i)) ? 0 : 255;
   }
   return out;
 }

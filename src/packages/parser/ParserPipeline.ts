@@ -1,5 +1,5 @@
 import type { FileLoader } from "./io.js";
-import type { ParsedMapData } from "./types.js";
+import type { ParsedMapData, RawBitmap } from "./types.js";
 import { parseBmp } from "./BmpParser.js";
 import { parseDefinitionCsv, parseAdjacenciesCsv } from "./CsvParser.js";
 import {
@@ -9,6 +9,7 @@ import {
   parseContinentTxt,
   parseClimateTxt,
 } from "./MapFileParsers.js";
+import { buildIdBuffer } from "./IdBuffer.js";
 
 export interface PipelineOptions {
   onProgress?: (progress: number, stage: string) => void;
@@ -48,12 +49,11 @@ export async function runParserPipeline(
   report(0.60, `provinces.bmp decodificado: ${provincesBitmap.width}×${provincesBitmap.height}`);
 
   // Etapa 4: terrain.bmp
-  let terrainBitmap = { width: 0, height: 0, data: new Uint8Array(0) };
+  let terrainBitmap: RawBitmap = { width: 0, height: 0, data: new Uint8Array(0) };
   if (loader.has(defaultMap.files.terrain)) {
     report(0.62, "Lendo terrain.bmp…");
     const terrainBmpBytes = await loader.readBytes(defaultMap.files.terrain);
     report(0.72, "Decodificando terrain.bmp…");
-    // FIX: Isso aqui também
     terrainBitmap = await parseBmp(terrainBmpBytes, defaultMap.files.terrain);
   } else {
     console.warn("[Pipeline] terrain.bmp não encontrado — terreno não será calculado por pixel");
@@ -79,6 +79,49 @@ export async function runParserPipeline(
   if (loader.has(defaultMap.files.terrainDefinition)) {
     const terrainText = await loader.readText(defaultMap.files.terrainDefinition);
     terrain = parseTerrainTxt(terrainText);
+  }
+
+  // Calcular terreno predominante para cada província usando terrain.bmp e indexToTerrain
+  if (terrainBitmap.width > 0 && terrain.indexToTerrain && terrain.indexToTerrain.size > 0) {
+    report(0.82, "Calculando terrenos das províncias por pixel…");
+    const { idBuffer } = buildIdBuffer(provincesBitmap, provinces);
+    const totalPixels = provincesBitmap.width * provincesBitmap.height;
+
+    // Mapa de ProvinceId -> Map of TerrainType -> count
+    const provinceTerrainCounts = new Map<number, Map<string, number>>();
+
+    for (let i = 0; i < totalPixels; i++) {
+      const provinceId = idBuffer[i];
+      if (provinceId === 0) continue; // Pular ID 0 (oceano puro)
+
+      const terrainIdx = terrainBitmap.data[i * 3]; // index está nos canais R, G, B
+      const terrainType = terrain.indexToTerrain.get(terrainIdx);
+      if (!terrainType) continue;
+
+      let counts = provinceTerrainCounts.get(provinceId);
+      if (!counts) {
+        counts = new Map<string, number>();
+        provinceTerrainCounts.set(provinceId, counts);
+      }
+      counts.set(terrainType, (counts.get(terrainType) || 0) + 1);
+    }
+
+    for (const [provinceId, counts] of provinceTerrainCounts.entries()) {
+      if (terrain.overrides.has(provinceId)) continue; // preservar override manual do terrain.txt
+
+      let maxType = "";
+      let maxCount = 0;
+      for (const [type, count] of counts.entries()) {
+        if (count > maxCount) {
+          maxCount = count;
+          maxType = type;
+        }
+      }
+      if (maxType) {
+        terrain.overrides.set(provinceId, maxType);
+      }
+    }
+    console.info(`[Pipeline] Terrenos pixel-based calculados para ${provinceTerrainCounts.size} províncias.`);
   }
 
   // Etapa 7: region.txt

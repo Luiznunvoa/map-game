@@ -35,6 +35,9 @@ export class ProvinceGlobe {
   private mapHeight: number;
   private idBuffer: Uint16Array;
 
+  public terrain: GlobeMapInput["terrain"];
+  public defaultMap: GlobeMapInput["defaultMap"];
+
   constructor(data: GlobeMapInput, config: ProvinceGlobeConfig = {}) {
     const {
       radius = 1.0,
@@ -47,6 +50,8 @@ export class ProvinceGlobe {
 
     this.mapVMin = mapVMin;
     this.mapVMax = mapVMax;
+    this.terrain = data.terrain;
+    this.defaultMap = data.defaultMap;
 
     this.textures = buildProvinceTextures(data, initialColorMode);
     const { idTexture, paletteTexture, maxProvinceId, mapWidth, mapHeight, idBuffer } = this.textures;
@@ -110,6 +115,13 @@ export class ProvinceGlobe {
     const clampedX = Math.max(0, Math.min(this.mapWidth - 1, x));
     const clampedY = Math.max(0, Math.min(this.mapHeight - 1, y));
     return this.idBuffer[clampedY * this.mapWidth + clampedX] ?? 0;
+  }
+
+  public getProvinceTerrain(id: ProvinceId): string {
+    if (this.defaultMap.seaStarts.has(id)) {
+      return "ocean";
+    }
+    return this.terrain.overrides.get(id) ?? "plains";
   }
 
   public selectProvince(id: ProvinceId): void {

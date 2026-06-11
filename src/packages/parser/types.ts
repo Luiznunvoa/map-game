@@ -112,6 +112,7 @@ export interface TerrainDefinition {
    * Tem precedência sobre o cálculo por maioria de pixels.
    */
   overrides: Map<ProvinceId, string>;
+  indexToTerrain?: Map<number, string>;
 }
 
 // ---------------------------------------------------------------------------

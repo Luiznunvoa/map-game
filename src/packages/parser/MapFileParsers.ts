@@ -72,6 +72,7 @@ export function parseTerrainTxt(content: string): TerrainDefinition {
 
   const categories = new Map<string, TerrainCategory>();
   const overrides = new Map<ProvinceId, string>();
+  const indexToTerrain = new Map<number, string>();
 
   for (const [name, rawCat] of Object.entries(categoriesObj)) {
     if (typeof rawCat !== "object" || Array.isArray(rawCat)) continue;
@@ -107,11 +108,44 @@ export function parseTerrainTxt(content: string): TerrainDefinition {
     }
   }
 
+  // Mapeamento de índice de terreno em terrain.bmp para o nome da categoria
+  for (const [key, val] of Object.entries(obj)) {
+    if (key === "terrain" || key === "categories" || key.startsWith("__")) continue;
+
+    if (val && typeof val === "object" && !Array.isArray(val)) {
+      const block = val as ClausewitzObject;
+      const typeVal = block["type"];
+      if (typeof typeVal === "string") {
+        const colorVal = block["color"];
+        const indices: number[] = [];
+        if (typeof colorVal === "number") {
+          indices.push(colorVal);
+        } else if (Array.isArray(colorVal)) {
+          for (const v of colorVal) {
+            if (typeof v === "number") indices.push(v);
+          }
+        } else if (colorVal && typeof colorVal === "object") {
+          const inner = colorVal as ClausewitzObject;
+          const values = inner["__values__"];
+          if (Array.isArray(values)) {
+            for (const v of values) {
+              if (typeof v === "number") indices.push(v);
+            }
+          }
+        }
+
+        for (const idx of indices) {
+          indexToTerrain.set(idx, typeVal);
+        }
+      }
+    }
+  }
+
   console.info(
-    `[TerrainParser] terrain.txt: ${categories.size} categorias, ${overrides.size} overrides`
+    `[TerrainParser] terrain.txt: ${categories.size} categorias, ${overrides.size} overrides, ${indexToTerrain.size} indices mapeados`
   );
 
-  return { paletteSize, categories, overrides };
+  return { paletteSize, categories, overrides, indexToTerrain };
 }
 
 export function parseRegionTxt(content: string): RegionMap {

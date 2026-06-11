@@ -57,7 +57,7 @@ export function buildProvinceTextures(
 
   fillPalette(paletteFloat, paletteSize, initialMode, provinceById, defaultMap.seaStarts, terrain, continents);
 
-  const paletteBytes = floatRgbToRgbaBytes(paletteFloat, paletteSize);
+  const paletteBytes = floatRgbToRgbaBytes(paletteFloat, paletteSize, defaultMap.seaStarts);
 
   const paletteTexture = new DataTexture(paletteBytes, paletteSize, 1, RGBAFormat, UnsignedByteType);
   paletteTexture.minFilter = NearestFilter;
@@ -75,7 +75,7 @@ export function buildProvinceTextures(
 
     fillPalette(paletteFloat, paletteSize, mode, provinceById, defaultMap.seaStarts, terrain, continents, customColors);
 
-    const newBytes = floatRgbToRgbaBytes(paletteFloat, paletteSize);
+    const newBytes = floatRgbToRgbaBytes(paletteFloat, paletteSize, defaultMap.seaStarts);
     paletteBytes.set(newBytes);
     paletteTexture.needsUpdate = true;
   }

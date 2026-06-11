@@ -8,6 +8,7 @@ import { MouseControls } from '../packages/mouse-controls'
 import { OrbitControl, type InputState } from '../packages/orbit-control'
 import { PerspectiveCamera, Object3D, Raycaster, Vector2 } from 'three'
 import { GenericTextBox } from '../packages/text-box'
+import { GenericSelector } from '../packages/selector'
 
 const MOCK_API = ''
 const AVAILABLE_FILES = [
@@ -19,6 +20,7 @@ const AVAILABLE_FILES = [
   'region.txt',
   'continent.txt',
   'climate.txt',
+  'terrain.bmp',
 ]
 
 export class MapView extends View {
@@ -33,9 +35,10 @@ export class MapView extends View {
   
   private customScene!: CustomScene
   private parser!: MapParser
-  private colorMode: MapColorMode = 'province'
+  private colorMode: MapColorMode = 'continent'
 
   private textBox!: GenericTextBox
+  private mapModeSelector!: GenericSelector<MapColorMode>
   private raycaster = new Raycaster()
   private mouse = new Vector2()
 
@@ -88,7 +91,8 @@ export class MapView extends View {
         const provinceId = this.map.pickProvinceAt(u, v)
         if (provinceId > 0) {
           this.map.selectProvince(provinceId)
-          this.textBox?.setText(`Selected Province ID: ${provinceId}`)
+          const terrainType = this.map.getProvinceTerrain(provinceId)
+          this.textBox?.setText(`Selected Province ID: ${provinceId} | Terrain: ${terrainType}`)
         }
       }
     }
@@ -96,7 +100,23 @@ export class MapView extends View {
 
   private setupObjects(): void {
     this.monitor = new PerformanceMonitor(this.container!)
+
     this.textBox = new GenericTextBox(this.container!, 'No province selected')
+
+    this.mapModeSelector = new GenericSelector<MapColorMode>({
+      container: this.container!,
+      options: [
+        { value: 'continent', label: 'Continents' },
+        { value: 'province', label: 'Provinces' },
+        { value: 'terrain', label: 'Terrain' },
+        // { value: 'political', label: 'Político' },
+      ],
+      initialValue: this.colorMode,
+      title: 'Map Modes',
+      onChange: (mode) => {
+        this.setColorMode(mode)
+      },
+    })
   }
 
   private setupScene(container: HTMLElement): void {
@@ -170,6 +190,7 @@ export class MapView extends View {
     this.map?.dispose()
     this.monitor.dispose()
     this.textBox?.dispose()
+    this.mapModeSelector?.dispose()
   }
 
   setColorMode(mode: MapColorMode): void {

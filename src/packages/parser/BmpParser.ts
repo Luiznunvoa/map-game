@@ -36,13 +36,6 @@ function parseBmpManual(bytes: Uint8Array): RawBitmap {
   const isTopDown = rawHeight < 0;
   const height = Math.abs(rawHeight);
 
-  if (bitsPerPixel !== 24) {
-    throw new Error(
-      `[BmpParser] Somente BMP 24-bit é suportado pelo decoder manual (encontrado: ${bitsPerPixel}-bit). ` +
-        `Usando fallback para Canvas API.`
-    );
-  }
-
   if (compression !== 0) {
     throw new Error(
       `[BmpParser] Somente BMP sem compressão (BI_RGB) é suportado pelo decoder manual ` +
@@ -50,40 +43,60 @@ function parseBmpManual(bytes: Uint8Array): RawBitmap {
     );
   }
 
-  // Bytes por linha do BMP (com padding de 4 bytes)
-  const rowSize = Math.floor((bitsPerPixel * width + 31) / 32) * 4;
+  if (bitsPerPixel === 24) {
+    // Bytes por linha do BMP (com padding de 4 bytes)
+    const rowSize = Math.floor((24 * width + 31) / 32) * 4;
+    const output = new Uint8Array(width * height * 3);
 
-  const output = new Uint8Array(width * height * 3);
+    for (let row = 0; row < height; row++) {
+      const srcRow = isTopDown ? row : height - 1 - row;
+      const srcOffset = pixelDataOffset + srcRow * rowSize;
+      const dstOffset = row * width * 3;
 
-  for (let row = 0; row < height; row++) {
-    // Em BMP bottom-up, a primeira linha do arquivo é a linha inferior da imagem
-    const srcRow = isTopDown ? row : height - 1 - row;
-    const srcOffset = pixelDataOffset + srcRow * rowSize;
-    const dstOffset = row * width * 3;
+      for (let col = 0; col < width; col++) {
+        const bmpBase = srcOffset + col * 3;
+        const b = bytes[bmpBase];
+        const g = bytes[bmpBase + 1];
+        const r = bytes[bmpBase + 2];
 
-    for (let col = 0; col < width; col++) {
-      // BMP 24-bit armazena em BGR
-      const bmpBase = srcOffset + col * 3;
-      const b = bytes[bmpBase];
-      const g = bytes[bmpBase + 1];
-      const r = bytes[bmpBase + 2];
-
-      const dstBase = dstOffset + col * 3;
-      output[dstBase] = r;
-      output[dstBase + 1] = g;
-      output[dstBase + 2] = b;
+        const dstBase = dstOffset + col * 3;
+        output[dstBase] = r;
+        output[dstBase + 1] = g;
+        output[dstBase + 2] = b;
+      }
     }
-  }
+    return { width, height, data: output };
+  } else if (bitsPerPixel === 8) {
+    // Bytes por linha do BMP (com padding de 4 bytes para 8-bit)
+    const rowSize = Math.floor((8 * width + 31) / 32) * 4;
+    const output = new Uint8Array(width * height * 3);
 
-  return { width, height, data: output };
+    for (let row = 0; row < height; row++) {
+      const srcRow = isTopDown ? row : height - 1 - row;
+      const srcOffset = pixelDataOffset + srcRow * rowSize;
+      const dstOffset = row * width * 3;
+
+      for (let col = 0; col < width; col++) {
+        const index = bytes[srcOffset + col];
+        const dstBase = dstOffset + col * 3;
+        output[dstBase] = index;
+        output[dstBase + 1] = index;
+        output[dstBase + 2] = index;
+      }
+    }
+    return { width, height, data: output };
+  } else {
+    throw new Error(
+      `[BmpParser] Decoder manual suporta apenas 24-bit ou 8-bit BMP (encontrado: ${bitsPerPixel}-bit).`
+    );
+  }
 }
 
 async function parseBmpViaCanvas(
   bytes: Uint8Array,
   filename: string
 ): Promise<RawBitmap> {
-  // FIX: Isso
-  const blob = new Blob([bytes], { type: "image/bmp" });
+  const blob = new Blob([bytes as any], { type: "image/bmp" });
 
   let bitmap: ImageBitmap;
   try {
