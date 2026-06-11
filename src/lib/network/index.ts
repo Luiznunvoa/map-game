@@ -1,5 +1,5 @@
-import type { INetworkAdapter } from "@/types/network";
 import * as Colyseus from "colyseus.js";
+import type { INetworkAdapter } from "./types";
 
 export class ColyseusAdapter<TState> implements INetworkAdapter<TState> {
   private client: Colyseus.Client;

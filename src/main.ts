@@ -1,20 +1,18 @@
 import './style.css'
 
-import { MapView } from '@/views/map'
+import { Game } from '@/game'
  
 document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
   <section id="scene-container"></section>
 `
-
 const container = document.querySelector<HTMLElement>('#scene-container')!
-const mapView = new MapView(container)
- 
-await mapView.mount();
 
-(window as any).setColorMode = mapView.setColorMode.bind(mapView)
+const game = new Game(container)
+ 
+await game.start()
  
 if (import.meta.hot) {
-  import.meta.hot.dispose(() => {
-    mapView.unmount()
+  import.meta.hot.dispose(async () => {
+    await game.destroy()
   })
 }

@@ -1,15 +1,16 @@
 import { Object3D, PerspectiveCamera, Raycaster, Vector2 } from 'three'
 
-import { View } from '@/lib/view'
-import { CustomScene } from '@/packages/custom-scene/custom-scene'
-import { PerformanceMonitor } from '@/packages/fps-counter'
-import { type MapColorMode,ProvinceGlobe } from '@/packages/globe'
-import { KeyboardControls } from '@/packages/keyboard-control'
-import { MapParser } from '@/packages/map-parser'
-import { MouseControls } from '@/packages/mouse-controls'
-import { type InputState,OrbitControl } from '@/packages/orbit-control'
-import { GenericSelector } from '@/packages/selector'
-import { GenericTextBox } from '@/packages/text-box'
+import { PerformanceMonitor } from '@/game/ui/fps-counter'
+import { ProvinceGlobe } from '@/game/entities/globe'
+import { KeyboardControls } from '@/game/controls/keyboard-control'
+import { MouseControls } from '@/game/controls/mouse-controls'
+import { type InputState,OrbitControl } from '@/game/controls/orbit-control'
+import { GenericSelector } from '@/game/ui/selector'
+import { GenericTextBox } from '@/game/ui/text-box'
+import type { IView } from '@/game/types/view'
+import { MapParser } from '@/game/services/map-parser'
+import { CustomScene } from '@/lib/scene'
+import type { MapColorMode } from '../entities/globe/types'
 
 const MOCK_API = ''
 const AVAILABLE_FILES = [
@@ -24,7 +25,8 @@ const AVAILABLE_FILES = [
   'terrain.bmp',
 ]
 
-export class MapView extends View {
+export class MapView implements IView {
+  private container: HTMLElement
   private camera!: PerspectiveCamera
   private keyboard!: KeyboardControls
   private mouseControls!: MouseControls 
@@ -43,8 +45,9 @@ export class MapView extends View {
   private raycaster = new Raycaster()
   private mouse = new Vector2()
 
-  constructor(container: HTMLElement) {
-    super(container)
+  constructor(container: HTMLElement, colorMode: MapColorMode = 'continent') {
+    this.container = container
+    this.colorMode = colorMode
   }
 
   async load(): Promise<void> {
@@ -194,7 +197,7 @@ export class MapView extends View {
     this.mapModeSelector?.dispose()
   }
 
-  setColorMode(mode: MapColorMode): void {
+  private setColorMode(mode: MapColorMode): void {
     this.colorMode = mode
     this.map?.setColorMode(mode)
   }

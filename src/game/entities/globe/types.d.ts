@@ -1,4 +1,4 @@
-import type { ParsedMapData } from '@/packages/parser/index.js'
+import type { ParsedMapData } from '@/lib/parsing-pipeline/types'
 
 export type NormalizedColor = [number, number, number]
 

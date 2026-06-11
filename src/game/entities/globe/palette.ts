@@ -1,4 +1,4 @@
-import type { ProvinceId } from '@/packages/parser/index.js'
+import type { ProvinceId } from '@/lib/parsing-pipeline/index.js'
 
 import type { GlobeMapInput, MapColorMode, NormalizedColor } from './types.js'
 

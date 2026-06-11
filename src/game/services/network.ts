@@ -1,5 +1,5 @@
-import type { GameState, ProvinceState } from "@/types/game";
-import type { INetworkAdapter } from "@/types/network";
+import type { INetworkAdapter } from "@/lib/network/types";
+import type { GameState, ProvinceState } from "@/game/types/state";
 
 export type ProvinceUpdateCallback = (id: number, data: ProvinceState) => void;
 

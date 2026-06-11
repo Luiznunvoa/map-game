@@ -5,9 +5,9 @@ import {
   UnsignedByteType,
 } from 'three'
 
-import type { ProvinceId } from '@/packages/parser/index.js'
-import type { IdBufferWithStats } from '@/packages/parser/index.js'
-import { buildIdBuffer } from '@/packages/parser/index.js'
+import type { ProvinceId } from '@/lib/parsing-pipeline/index.js'
+import type { IdBufferWithStats } from '@/lib/parsing-pipeline/index.js'
+import { buildIdBuffer } from '@/lib/parsing-pipeline/index.js'
 
 import { fillPalette, floatRgbToRgbaBytes } from './palette.js'
 import type { GlobeMapInput, MapColorMode, NormalizedColor } from './types.js'

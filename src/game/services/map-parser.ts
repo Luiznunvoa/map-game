@@ -1,4 +1,4 @@
-import { createFetchFileLoader, type FileLoader, type ParsedMapData, type PipelineOptions,runParserPipeline } from '@/packages/parser'
+import { createFetchFileLoader, type FileLoader, type ParsedMapData, type PipelineOptions,runParserPipeline } from '@/lib/parsing-pipeline'
 
 export type ParserStatus = 'idle' | 'loading' | 'done' | 'error'
 
