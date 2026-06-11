@@ -20,7 +20,11 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "erasableSyntaxOnly": true,
-    "noFallthroughCasesInSwitch": true
+    "noFallthroughCasesInSwitch": true,
+
+    /* Colyseus / Decorators Fix */
+    "experimentalDecorators": true,
+    "strictPropertyInitialization": false
   },
   "include": ["src"]
 }
