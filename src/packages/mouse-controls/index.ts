@@ -1,67 +1,67 @@
 export class MouseControls {
-  private isDragging: boolean = false;
-  private startX: number = 0;
-  private startY: number = 0;
+  private isDragging: boolean = false
+  private startX: number = 0
+  private startY: number = 0
   
   // Acumuladores de movimento
-  private dragDeltaX: number = 0;
-  private dragDeltaY: number = 0;
-  private zoomDelta: number = 0;
+  private dragDeltaX: number = 0
+  private dragDeltaY: number = 0
+  private zoomDelta: number = 0
 
   // Elemento alvo (pode ser o window, document, ou um canvas específico)
-  private target: HTMLElement | Window;
-  private onClickCallback?: (e: MouseEvent) => void;
+  private target: HTMLElement | Window
+  private onClickCallback?: (e: MouseEvent) => void
 
   constructor(target: HTMLElement | Window = window) {
-    this.target = target;
-    this.attachEvents();
+    this.target = target
+    this.attachEvents()
   }
 
   public onClick(callback: (e: MouseEvent) => void): void {
-    this.onClickCallback = callback;
+    this.onClickCallback = callback
   }
 
   // Arrow functions preservam o contexto do 'this'
   private onMouseDown = (e: Event): void => {
-    const mouseEvent = e as MouseEvent;
-    this.isDragging = true;
-    this.startX = mouseEvent.clientX;
-    this.startY = mouseEvent.clientY;
-  };
+    const mouseEvent = e as MouseEvent
+    this.isDragging = true
+    this.startX = mouseEvent.clientX
+    this.startY = mouseEvent.clientY
+  }
 
   private onMouseUp = (e: Event): void => {
-    const mouseEvent = e as MouseEvent;
-    this.isDragging = false;
+    const mouseEvent = e as MouseEvent
+    this.isDragging = false
 
-    const dx = mouseEvent.clientX - this.startX;
-    const dy = mouseEvent.clientY - this.startY;
-    const dist = Math.sqrt(dx * dx + dy * dy);
+    const dx = mouseEvent.clientX - this.startX
+    const dy = mouseEvent.clientY - this.startY
+    const dist = Math.sqrt(dx * dx + dy * dy)
 
     // Se o arraste foi insignificante (menos de 5 pixels), trata-se de um clique
     if (dist < 5 && this.onClickCallback) {
-      this.onClickCallback(mouseEvent);
+      this.onClickCallback(mouseEvent)
     }
-  };
+  }
 
   private onMouseMove = (e: Event): void => {
-    const mouseEvent = e as MouseEvent;
+    const mouseEvent = e as MouseEvent
     if (this.isDragging) {
-      this.dragDeltaX += mouseEvent.movementX;
-      this.dragDeltaY += mouseEvent.movementY;
+      this.dragDeltaX += mouseEvent.movementX
+      this.dragDeltaY += mouseEvent.movementY
     }
-  };
+  }
 
   private onWheel = (e: Event): void => {
-    const wheelEvent = e as WheelEvent;
-    wheelEvent.preventDefault(); // Evita o scroll da página
-    this.zoomDelta += wheelEvent.deltaY;
-  };
+    const wheelEvent = e as WheelEvent
+    wheelEvent.preventDefault() // Evita o scroll da página
+    this.zoomDelta += wheelEvent.deltaY
+  }
 
   private attachEvents(): void {
-    this.target.addEventListener('mousedown', this.onMouseDown);
-    this.target.addEventListener('mouseup', this.onMouseUp);
-    this.target.addEventListener('mousemove', this.onMouseMove);
-    this.target.addEventListener('wheel', this.onWheel, { passive: false });
+    this.target.addEventListener('mousedown', this.onMouseDown)
+    this.target.addEventListener('mouseup', this.onMouseUp)
+    this.target.addEventListener('mousemove', this.onMouseMove)
+    this.target.addEventListener('wheel', this.onWheel, { passive: false })
   }
 
   /**
@@ -73,23 +73,23 @@ export class MouseControls {
       dragDeltaX: this.dragDeltaX,
       dragDeltaY: this.dragDeltaY,
       zoomDelta: this.zoomDelta,
-    };
+    }
 
     // Zera os acumuladores após o consumo
-    this.dragDeltaX = 0;
-    this.dragDeltaY = 0;
-    this.zoomDelta = 0;
+    this.dragDeltaX = 0
+    this.dragDeltaY = 0
+    this.zoomDelta = 0
 
-    return deltas;
+    return deltas
   }
 
   /**
    * Remove os eventos para evitar memory leaks caso o controle seja destruído
    */
   public dispose(): void {
-    this.target.removeEventListener('mousedown', this.onMouseDown);
-    this.target.removeEventListener('mouseup', this.onMouseUp);
-    this.target.removeEventListener('mousemove', this.onMouseMove);
-    this.target.removeEventListener('wheel', this.onWheel);
+    this.target.removeEventListener('mousedown', this.onMouseDown)
+    this.target.removeEventListener('mouseup', this.onMouseUp)
+    this.target.removeEventListener('mousemove', this.onMouseMove)
+    this.target.removeEventListener('wheel', this.onWheel)
   }
 }

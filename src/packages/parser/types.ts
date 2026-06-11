@@ -15,10 +15,10 @@
 // ---------------------------------------------------------------------------
 
 /** Identificador único de província (inteiro >= 1; 0 = oceano) */
-export type ProvinceId = number;
+export type ProvinceId = number
 
 /** Tag de país no formato Victoria 2 — 3 letras maiúsculas */
-export type CountryTag = string;
+export type CountryTag = string
 
 // ---------------------------------------------------------------------------
 // Dados brutos do BMP
@@ -53,16 +53,16 @@ export interface ProvinceDefinition {
 }
 
 /** Mapa de cor → definição de província. Chave: "r,g,b" */
-export type ColorToProvince = Map<string, ProvinceDefinition>;
+export type ColorToProvince = Map<string, ProvinceDefinition>
 
 /** Mapa de ID → definição de província */
-export type IdToProvince = Map<ProvinceId, ProvinceDefinition>;
+export type IdToProvince = Map<ProvinceId, ProvinceDefinition>
 
 // ---------------------------------------------------------------------------
 // Dados do adjacencies.csv
 // ---------------------------------------------------------------------------
 
-export type AdjacencyType = "sea" | "land" | "impassable";
+export type AdjacencyType = 'sea' | 'land' | 'impassable'
 
 /** Uma linha do `adjacencies.csv` */
 export interface Adjacency {
@@ -120,14 +120,14 @@ export interface TerrainDefinition {
 // ---------------------------------------------------------------------------
 
 /** Mapa de nome da região → lista de ProvinceIds */
-export type RegionMap = Map<string, ProvinceId[]>;
+export type RegionMap = Map<string, ProvinceId[]>
 
 // ---------------------------------------------------------------------------
 // Dados de continente (continent.txt)
 // ---------------------------------------------------------------------------
 
 /** Mapa de nome do continente → lista de ProvinceIds */
-export type ContinentMap = Map<string, ProvinceId[]>;
+export type ContinentMap = Map<string, ProvinceId[]>
 
 // ---------------------------------------------------------------------------
 // Dados de clima (climate.txt)
@@ -161,9 +161,9 @@ export type ClausewitzValue =
   | number
   | boolean
   | ClausewitzObject
-  | ClausewitzValue[];
+  | ClausewitzValue[]
 
-export type ClausewitzObject = { [key: string]: ClausewitzValue };
+export type ClausewitzObject = { [key: string]: ClausewitzValue }
 
 // ---------------------------------------------------------------------------
 // Resultado completo do pipeline de parsing

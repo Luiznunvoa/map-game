@@ -1,5 +1,6 @@
 import './style.css'
-import { MapView } from './views/map';
+
+import { MapView } from '@/views/map'
  
 document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
   <section id="scene-container"></section>

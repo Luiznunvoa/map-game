@@ -7,22 +7,22 @@ export interface FileLoader {
 export function createBrowserFileLoader(files: Map<string, File>): FileLoader {
   return {
     has(key) {
-      return files.has(key);
+      return files.has(key)
     },
 
     async readText(key) {
-      const file = files.get(key);
-      if (!file) throw new Error(`[FileLoader] Arquivo não encontrado: "${key}"`);
-      return file.text();
+      const file = files.get(key)
+      if (!file) throw new Error(`[FileLoader] Arquivo não encontrado: "${key}"`)
+      return file.text()
     },
 
     async readBytes(key) {
-      const file = files.get(key);
-      if (!file) throw new Error(`[FileLoader] Arquivo não encontrado: "${key}"`);
-      const buf = await file.arrayBuffer();
-      return new Uint8Array(buf);
+      const file = files.get(key)
+      if (!file) throw new Error(`[FileLoader] Arquivo não encontrado: "${key}"`)
+      const buf = await file.arrayBuffer()
+      return new Uint8Array(buf)
     },
-  };
+  }
 }
 
 export function createFetchFileLoader(
@@ -91,4 +91,4 @@ export function createNodeFileLoader(baseDir: string): FileLoader {
     },
   };
 }
-`;
+`
