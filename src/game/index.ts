@@ -1,5 +1,6 @@
 import { MapView } from '@/game/views/map'
-import type { IView } from './types/view';
+
+import type { IView } from './types/view'
 
 export class Game {
   private activeView: IView | null = null
@@ -14,9 +15,9 @@ export class Game {
    */
   public async start(): Promise<void> {
     // A primeira view já começa sendo o mapa
-    const mapView = new MapView(this.container);
+    const mapView: IView = new MapView(this.container)
 
-    await this.switchView(mapView);
+    await this.switchView(mapView)
   }
 
   /**

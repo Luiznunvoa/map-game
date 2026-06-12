@@ -9,19 +9,20 @@ import {
   Vector3,
 } from 'three'
 
-import type { ProvinceId } from '@/lib/parsing-pipeline/index.js'
 import ATMOSPHERE_FRAG from '@/game/shaders/globe.atmosphere.frag.glsl?raw'
 import ATMOSPHERE_VERT from '@/game/shaders/globe.atmosphere.vert.glsl?raw'
 import FRAGMENT_SHADER from '@/game/shaders/globe.frag.glsl?raw'
 import VERTEX_SHADER from '@/game/shaders/globe.vert.glsl?raw'
+import type { Entity } from '@/game/types/entity'
+import type { ProvinceId } from '@/lib/parsing-pipeline/index.js'
 
-import type { ProvinceTextures } from './textures.js'
+import type { ProvinceTextures as MapTextures } from './textures.js'
 import { buildProvinceTextures } from './textures.js'
 import type { GlobeMapInput, MapColorMode, NormalizedColor, ProvinceGlobeConfig } from './types.js'
 
-export class ProvinceGlobe {
+export class Map3D implements Entity {
   public group: Group
-  public textures: ProvinceTextures
+  public textures: MapTextures
   
   private geometry: SphereGeometry
   private material: ShaderMaterial
@@ -144,3 +145,4 @@ export class ProvinceGlobe {
     this.textures.dispose()
   }
 }
+
