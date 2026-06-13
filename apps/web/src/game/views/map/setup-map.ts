@@ -9,14 +9,12 @@ import type { MapViewContext } from './types'
 
 const MOCK_API = ''
 const AVAILABLE_FILES = [
+  'definitions.json',
   'provinces.bmp',
-  'definition.csv',
   'default.map',
-  'adjacencies.csv',
-  'terrain.txt',
-  'region.txt',
-  'continent.txt',
-  'climate.txt',
+  'terrain.json',
+  'regions.json',
+  'continents.json',
   'terrain.bmp',
 ]
 

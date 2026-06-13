@@ -1,13 +1,9 @@
 import { parseBmp } from './BmpParser.js'
-import { parseAdjacenciesCsv,parseDefinitionCsv } from './CsvParser.js'
+import { parseDefinitionsJson } from './JsonParser.js'
 import { buildIdBuffer } from './IdBuffer.js'
 import type { FileLoader } from './io.js'
 import {
-  parseClimateTxt,
-  parseContinentTxt,
   parseDefaultMap,
-  parseRegionTxt,
-  parseTerrainTxt,
 } from './MapFileParsers.js'
 import type { ParsedMapData, RawBitmap } from './types.js'
 
@@ -31,10 +27,10 @@ export async function runParserPipeline(
     console.info(`[Pipeline] ${Math.round(progress * 100)}% — ${stage}`)
   }
 
-  // Etapa 1: definition.csv
-  report(0.05, 'Lendo definition.csv…')
-  const definitionText = await loader.readText('definition.csv')
-  const { byColor: provinces, byId: provinceById } = parseDefinitionCsv(definitionText)
+  // Etapa 1: definitions.json
+  report(0.05, 'Lendo definitions.json…')
+  const definitionText = await loader.readText('definitions.json')
+  const { byColor: provinces, byId: provinceById, adjacencies } = parseDefinitionsJson(definitionText)
 
   // Etapa 2: default.map 
   report(0.10, 'Lendo default.map…')
@@ -59,26 +55,39 @@ export async function runParserPipeline(
     console.warn('[Pipeline] terrain.bmp não encontrado — terreno não será calculado por pixel')
   }
 
-  // Etapa 5: adjacencies.csv
-  report(0.75, 'Lendo adjacencies.csv…')
-  let adjacencies: ParsedMapData['adjacencies'] = []
-  if (loader.has('adjacencies.csv')) {
-    const adjText = await loader.readText('adjacencies.csv')
-    adjacencies = parseAdjacenciesCsv(adjText)
-  } else {
-    console.warn('[Pipeline] adjacencies.csv não encontrado — adjacências especiais ignoradas')
-  }
+  // adjacencies já extraídas na etapa 1
 
-  // Etapa 6: terrain.txt
-  report(0.80, 'Lendo terrain.txt…')
+  // Etapa 6: terrain.json
+  report(0.80, 'Lendo terrain.json…')
   let terrain: ParsedMapData['terrain'] = {
     paletteSize: 64,
     categories: new Map(),
     overrides: new Map(),
+    indexToTerrain: new Map(),
   }
   if (loader.has(defaultMap.files.terrainDefinition)) {
     const terrainText = await loader.readText(defaultMap.files.terrainDefinition)
-    terrain = parseTerrainTxt(terrainText)
+    const rawTerrain = JSON.parse(terrainText)
+    
+    const categoriesMap = new Map()
+    for (const [k, v] of Object.entries(rawTerrain.categories)) categoriesMap.set(k, v)
+    
+    const overridesMap = new Map()
+    if (rawTerrain.overrides) {
+      for (const [k, v] of Object.entries(rawTerrain.overrides)) overridesMap.set(Number(k), v as string)
+    }
+    
+    const indexToTerrainMap = new Map()
+    if (rawTerrain.indexToTerrain) {
+      for (const [k, v] of Object.entries(rawTerrain.indexToTerrain)) indexToTerrainMap.set(Number(k), v as string)
+    }
+
+    terrain = {
+      paletteSize: rawTerrain.paletteSize || 64,
+      categories: categoriesMap,
+      overrides: overridesMap,
+      indexToTerrain: indexToTerrainMap,
+    }
   }
 
   // Calcular terreno predominante para cada província usando terrain.bmp e indexToTerrain
@@ -124,31 +133,26 @@ export async function runParserPipeline(
     console.info(`[Pipeline] Terrenos pixel-based calculados para ${provinceTerrainCounts.size} províncias.`)
   }
 
-  // Etapa 7: region.txt
-  report(0.85, 'Lendo region.txt…')
+  // Etapa 7: regions.json
+  report(0.85, 'Lendo regions.json…')
   let regions: ParsedMapData['regions'] = new Map()
-  if (loader.has('region.txt')) {
-    const regionText = await loader.readText('region.txt')
-    regions = parseRegionTxt(regionText)
+  if (loader.has('regions.json')) {
+    const regionText = await loader.readText('regions.json')
+    const rawRegions = JSON.parse(regionText)
+    for (const [name, ids] of Object.entries(rawRegions)) {
+      regions.set(name, ids as number[])
+    }
   }
 
-  // Etapa 8: continent.txt
-  report(0.90, 'Lendo continent.txt…')
+  // Etapa 8: continents.json
+  report(0.90, 'Lendo continents.json…')
   let continents: ParsedMapData['continents'] = new Map()
-  if (loader.has('continent.txt')) {
-    const continentText = await loader.readText('continent.txt')
-    continents = parseContinentTxt(continentText)
-  }
-
-  // Etapa 9: climate.txt
-  report(0.95, 'Lendo climate.txt…')
-  let climate: ParsedMapData['climate'] = {
-    categories: new Map(),
-    provinceClimate: new Map(),
-  }
-  if (loader.has('climate.txt')) {
-    const climateText = await loader.readText('climate.txt')
-    climate = parseClimateTxt(climateText)
+  if (loader.has('continents.json')) {
+    const continentText = await loader.readText('continents.json')
+    const rawContinents = JSON.parse(continentText)
+    for (const [name, ids] of Object.entries(rawContinents)) {
+      continents.set(name, ids as number[])
+    }
   }
 
   report(1.0, 'Parsing concluído!')
@@ -161,7 +165,6 @@ export async function runParserPipeline(
     terrain,
     regions,
     continents,
-    climate,
     provincesBitmap,
     terrainBitmap,
   }

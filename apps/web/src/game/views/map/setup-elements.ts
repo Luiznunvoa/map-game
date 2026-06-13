@@ -14,6 +14,7 @@ export function setupElements(ctx: MapViewContext): void {
     options: [
       { value: 'political', label: 'Political' },
       { value: 'continent', label: 'Continents' },
+      { value: 'region', label: 'Regions' },
       { value: 'province', label: 'Provinces' },
       { value: 'terrain', label: 'Terrain' },
     ],

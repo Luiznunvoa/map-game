@@ -99,8 +99,6 @@ async function migrate() {
       cores: p.cores || [],
       owner: p.owner || "",
       controller: p.controller || null,
-      terrain: p.terrain || "unknown",
-      population: parseInt(p.life_rating || "10", 10) * 1000, // Usar life rating como base de propulação
       adjacencies: adjacenciesMap.get(p.id) || []
     });
   }
@@ -114,8 +112,6 @@ async function migrate() {
         cores: [],
         owner: "",
         controller: null,
-        terrain: "unknown",
-        population: 0,
         adjacencies: adjacenciesMap.get(id) || []
       });
     }

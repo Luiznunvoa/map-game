@@ -57,7 +57,6 @@ export interface TerrainCategory {
   name: string;
   color: [number, number, number];
   isWater: boolean;
-  movementCost: number;
 }
 
 export interface TerrainDefinition {
@@ -76,19 +75,7 @@ export type RegionMap = Map<string, ProvinceId[]>
 
 export type ContinentMap = Map<string, ProvinceId[]>
 
-export interface ClimateCategory {
-  name: string;
-  farmRgoSize: number;
-  farmRgoEff: number;
-  mineRgoSize: number;
-  mineRgoEff: number;
-  maxAttrition?: number;
-}
 
-export interface ClimateDefinition {
-  categories: Map<string, ClimateCategory>;
-  provinceClimate: Map<ProvinceId, string>;
-}
 
 /**
  * Valor genérico do parser Clausewitz.
@@ -115,7 +102,6 @@ export interface ParsedMapData {
   terrain: TerrainDefinition;
   regions: RegionMap;
   continents: ContinentMap;
-  climate: ClimateDefinition;
   provincesBitmap: RawBitmap;
   terrainBitmap: RawBitmap;
 }

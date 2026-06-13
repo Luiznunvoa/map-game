@@ -44,6 +44,7 @@ export function fillPalette(
   seaStarts: Set<ProvinceId>,
   terrain: GlobeMapInput['terrain'],
   continents: GlobeMapInput['continents'],
+  regions: GlobeMapInput['regions'],
   customColors?: Map<ProvinceId, NormalizedColor>,
 ): void {
   switch (mode) {
@@ -58,6 +59,9 @@ export function fillPalette(
       break
     case 'continent':
       fillByContinent(paletteData, paletteSize, continents, seaStarts, provinceById)
+      break
+    case 'region':
+      fillByRegion(paletteData, paletteSize, regions, seaStarts, provinceById)
       break
   }
 }
@@ -169,6 +173,41 @@ function fillByContinent(
   const idToColor = new Map<ProvinceId, NormalizedColor>()
   let colorIdx = 0
   for (const [, ids] of continents) {
+    const color = CONTINENT_COLORS[colorIdx % CONTINENT_COLORS.length]
+    for (const id of ids) {
+      idToColor.set(id, color)
+    }
+    colorIdx++
+  }
+
+  for (const [id] of provinceById) {
+    if (id >= paletteSize) continue
+    const base = id * 3
+
+    const color = seaStarts.has(id)
+      ? SEA
+      : (idToColor.get(id) ?? UNCLAIMED)
+
+    paletteData[base] = color[0]
+    paletteData[base + 1] = color[1]
+    paletteData[base + 2] = color[2]
+  }
+}
+
+function fillByRegion(
+  paletteData: Float32Array,
+  paletteSize: number,
+  regions: GlobeMapInput['regions'],
+  seaStarts: Set<ProvinceId>,
+  provinceById: GlobeMapInput['provinceById'],
+): void {
+  const SEA: NormalizedColor = [0.08, 0.18, 0.40]
+  const UNCLAIMED: NormalizedColor = [0.35, 0.35, 0.35]
+
+  const idToColor = new Map<ProvinceId, NormalizedColor>()
+  let colorIdx = 0
+  for (const [, ids] of regions) {
+    // Reutilizar as cores de continentes (ou podemos gerar dinamicamente)
     const color = CONTINENT_COLORS[colorIdx % CONTINENT_COLORS.length]
     for (const id of ids) {
       idToColor.set(id, color)

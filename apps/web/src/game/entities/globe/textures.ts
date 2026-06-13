@@ -28,7 +28,7 @@ export function buildProvinceTextures(
   data: GlobeMapInput,
   initialMode: MapColorMode = 'province',
 ): ProvinceTextures {
-  const { provincesBitmap, provinces, provinceById, defaultMap, terrain, continents } = data
+  const { provincesBitmap, provinces, provinceById, defaultMap, terrain, continents, regions } = data
   const { width, height } = provincesBitmap
 
   console.time('[ProvinceTextures] buildIdBuffer')
@@ -57,7 +57,7 @@ export function buildProvinceTextures(
   paletteFloat[1] = 0.18
   paletteFloat[2] = 0.40
 
-  fillPalette(paletteFloat, paletteSize, initialMode, provinceById, defaultMap.seaStarts, terrain, continents)
+  fillPalette(paletteFloat, paletteSize, initialMode, provinceById, defaultMap.seaStarts, terrain, continents, regions)
 
   const paletteBytes = floatRgbToRgbaBytes(paletteFloat, paletteSize, defaultMap.seaStarts)
 
@@ -75,7 +75,7 @@ export function buildProvinceTextures(
     paletteFloat[1] = 0.18
     paletteFloat[2] = 0.40
 
-    fillPalette(paletteFloat, paletteSize, mode, provinceById, defaultMap.seaStarts, terrain, continents, customColors)
+    fillPalette(paletteFloat, paletteSize, mode, provinceById, defaultMap.seaStarts, terrain, continents, regions, customColors)
 
     const newBytes = floatRgbToRgbaBytes(paletteFloat, paletteSize, defaultMap.seaStarts)
     paletteBytes.set(newBytes)

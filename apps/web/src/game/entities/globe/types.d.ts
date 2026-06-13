@@ -2,7 +2,7 @@ import type { ParsedMapData } from '@/lib/parsing-pipeline/types'
 
 export type NormalizedColor = [number, number, number]
 
-export type MapColorMode = 'political' | 'province' | 'terrain' | 'continent'
+export type MapColorMode = 'political' | 'province' | 'terrain' | 'continent' | 'region'
 
 export type GlobeMapInput = Pick<
   ParsedMapData,
@@ -12,6 +12,7 @@ export type GlobeMapInput = Pick<
   | 'defaultMap'
   | 'terrain'
   | 'continents'
+  | 'regions'
 >
 
 export interface ProvinceGlobeConfig {

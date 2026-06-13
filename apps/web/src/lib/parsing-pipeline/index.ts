@@ -14,11 +14,7 @@ export { buildIdBuffer, getCentroid } from './IdBuffer.js'
 export type { FileLoader } from './io.js'
 export { createBrowserFileLoader, createFetchFileLoader, NODE_FILE_LOADER_STUB } from './io.js'
 export {
-  parseClimateTxt,
-  parseContinentTxt,
   parseDefaultMap,
-  parseRegionTxt,
-  parseTerrainTxt,
 } from './MapFileParsers.js'
 export type { PipelineOptions } from './ParserPipeline.js'
 export { runParserPipeline } from './ParserPipeline.js'
@@ -27,8 +23,6 @@ export type {
   AdjacencyType,
   ClausewitzObject,
   ClausewitzValue,
-  ClimateCategory,
-  ClimateDefinition,
   ColorToProvince,
   ContinentMap,
   CountryTag,

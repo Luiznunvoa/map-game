@@ -14,8 +14,6 @@ export interface ProvinceData {
   cores: string[]
   owner: string
   controller: string | null
-  terrain?: string
-  population: number
   adjacencies?: ProvinceAdjacency[]
 }
 
