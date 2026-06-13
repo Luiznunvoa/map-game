@@ -23,13 +23,13 @@ export class OrbitControl {
   private theta: number = 0
   private phi: number = Math.PI / 2
 
-  private readonly minRadius = 1.5
-  private readonly maxRadius = 15
+  private readonly minRadius = 1.125
+  private readonly maxRadius = 20
   private readonly minPhi = 0.55
   private readonly maxPhi = Math.PI - 0.55
   
   // Velocidades ajustadas para diferentes tipos de input
-  private readonly zoomSpeed = 0.002
+  private readonly zoomSpeed = 0.0015
   private readonly keyOrbitSpeed = 0.03
   private readonly mouseOrbitSpeed = 0.005
 
@@ -56,7 +56,7 @@ export class OrbitControl {
 
     // 3. Zoom via Mouse (Wheel)
     if (input.zoomDelta !== 0) {
-      this.radius += input.zoomDelta * this.zoomSpeed
+      this.radius += input.zoomDelta * this.zoomSpeed * multiplier * 1.5
       this.radius = Math.max(this.minRadius, Math.min(this.maxRadius, this.radius))
     }
 
