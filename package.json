@@ -1,0 +1,25 @@
+{
+  "name": "map-game",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev:web": "bun run --cwd apps/web dev",
+    "dev:backend": "bun run --cwd apps/backend dev",
+    "dev": "bun run dev:backend & bun run dev:web",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix"
+  },
+  "devDependencies": {
+    "@stylistic/eslint-plugin": "^5.10.0",
+    "@types/bun": "latest",
+    "eslint": "^10.4.1",
+    "eslint-plugin-simple-import-sort": "^13.0.0",
+    "typescript": "~6.0.2",
+    "typescript-eslint": "^8.61.0"
+  }
+}
