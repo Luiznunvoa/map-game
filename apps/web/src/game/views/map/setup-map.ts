@@ -47,6 +47,8 @@ export async function setupParser(ctx: MapViewContext): Promise<void> {
         initialColorMode: ctx.colorMode,
       })
       
+      ctx.setColorMode(ctx.colorMode)
+      
       ctx.scene.setEntities([ctx.map, ...ctx.entities])
     }
   })

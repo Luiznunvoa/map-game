@@ -1,13 +1,16 @@
 import { MapView } from '@/game/views/map'
+import { LoadingScreen } from '@/game/ui/loading'
 
 import type { IView } from './types/view'
 
 export class Game {
   private activeView: IView | null = null
   private container: HTMLElement
+  private loadingScreen: LoadingScreen
 
   constructor(container: HTMLElement) {
     this.container = container
+    this.loadingScreen = new LoadingScreen(this.container)
   }
 
   /**
@@ -25,14 +28,21 @@ export class Game {
    * cuidando de descarregar a view ativa anterior.
    */
   public async switchView(view: IView): Promise<void> {
+    this.loadingScreen.show()
+
     if (this.activeView) {
       this.activeView.stop()
       await this.activeView.unload()
     }
 
     this.activeView = view
-    await this.activeView.load()
-    this.activeView.start()
+    
+    try {
+      await this.activeView.load()
+      this.activeView.start()
+    } finally {
+      await this.loadingScreen.hide()
+    }
   }
 
   /**
@@ -46,6 +56,7 @@ export class Game {
    * Destrói a view ativa atual e limpa os recursos.
    */
   public async destroy(): Promise<void> {
+    this.loadingScreen.dispose()
     if (this.activeView) {
       this.activeView.stop()
       await this.activeView.unload()
