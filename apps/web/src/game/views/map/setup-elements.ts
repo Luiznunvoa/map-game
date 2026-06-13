@@ -12,6 +12,7 @@ export function setupElements(ctx: MapViewContext): void {
   ctx.mapModeSelector = new GenericSelector<MapColorMode>({
     container: ctx.container,
     options: [
+      { value: 'political', label: 'Political' },
       { value: 'continent', label: 'Continents' },
       { value: 'province', label: 'Provinces' },
       { value: 'terrain', label: 'Terrain' },

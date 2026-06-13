@@ -71,6 +71,7 @@ void main() {
   // Verificar se é borda
   bool isSeaBorder = false;
   bool isLandBorder = false;
+  bool isStateBorder = false;
   
   // Checar vizinhos usando derivadas de tela para manter a linha fina (1 pixel)
   vec2 offsets[4];
@@ -85,10 +86,14 @@ void main() {
       bool neighborIsSea = isSeaId(neighborId);
       if (isSeaProvince && neighborIsSea) {
         isSeaBorder = true;
-        break;
       } else if (!isSeaProvince && !neighborIsSea) {
         isLandBorder = true;
-        break;
+        
+        float nU = (float(neighborId) + 0.5) / u_paletteSize;
+        vec3 nColor = texture(u_palette, vec2(nU, 0.5)).rgb;
+        if (distance(nColor, color) > 0.01) {
+          isStateBorder = true;
+        }
       }
     }
   }
@@ -106,11 +111,15 @@ void main() {
     color = mix(color, vec3(0.5, 0.8, 1.0), borderOpacity * 0.75);
   }
 
-  // Aplicar linha cinza suave se for borda terrestre e a câmera estiver perto
-  if (isLandBorder) {
+  // Aplicar bordas diferentes baseado no mapa de cores
+  if (isStateBorder) {
+    // Borda escura e forte delimitando fronteiras de cores diferentes (países)
+    color = mix(color, vec3(0.0, 0.0, 0.0), 0.5);
+  } else if (isLandBorder) {
+    // Borda clara e fraca para províncias dentro do mesmo país
     float dist = length(vViewPosition);
     float borderOpacity = smoothstep(2.2, 1.3, dist);
-    color = mix(color, vec3(1, 1, 1), borderOpacity * 0.4);
+    color = mix(color, vec3(1.0, 1.0, 1.0), borderOpacity * 0.15);
   }
 
   // Iluminação Lambertian simples

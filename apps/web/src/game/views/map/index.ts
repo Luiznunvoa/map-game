@@ -17,7 +17,7 @@ import { handleClicks } from './handle-clicks'
 import { setupControls } from './setup-controls'
 import { setupElements } from './setup-elements'
 import { handleFrame, setupParser, setupScene } from './setup-map'
-import type { MapViewContext } from './types'
+import type { CountriesData, MapViewContext } from './types'
 
 export class MapView implements MapViewContext {
   public container: HTMLElement
@@ -35,12 +35,13 @@ export class MapView implements MapViewContext {
   
   public scene!: CustomScene
   public parser!: MapParser
-  public colorMode: MapColorMode = 'continent'
+  public colorMode: MapColorMode = 'political'
+  public countryData: CountriesData | null = null
 
   public raycaster = new Raycaster()
   public mouse = new Vector2()
 
-  constructor(container: HTMLElement, colorMode: MapColorMode = 'continent') {
+  constructor(container: HTMLElement, colorMode: MapColorMode = 'political') {
     this.container = container
     this.colorMode = colorMode
   }
@@ -48,6 +49,13 @@ export class MapView implements MapViewContext {
   async load(): Promise<void> {
     this.background = new StaticBackground(this.container, '/bg.png')
     this.entities.push(this.background)
+
+    try {
+      const res = await fetch('/countries.json')
+      this.countryData = await res.json() as CountriesData
+    } catch (e) {
+      console.warn('Failed to load countries.json', e)
+    }
 
     setupScene(this, this.onFrame)
     setupControls(this, this.onClick)
@@ -85,6 +93,19 @@ export class MapView implements MapViewContext {
 
   setColorMode(mode: MapColorMode): void {
     this.colorMode = mode
-    this.map?.setColorMode(mode)
+    let customColors: Map<number, [number, number, number]> | undefined = undefined
+
+    if (mode === 'political' && this.countryData) {
+      customColors = new Map()
+      const { tags, provinces } = this.countryData
+      for (const prov of provinces) {
+        const country = tags[prov.owner]
+        if (country && country.color) {
+          customColors.set(prov.id, country.color)
+        }
+      }
+    }
+
+    this.map?.setColorMode(mode, customColors)
   }
 }

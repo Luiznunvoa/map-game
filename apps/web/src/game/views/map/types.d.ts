@@ -5,7 +5,18 @@ import { MouseControls } from '@/game/controls/mouse-controls'
 import { OrbitControl } from '@/game/controls/orbit-control'
 import { StaticBackground } from '@/game/entities/background'
 import { Map3D } from '@/game/entities/globe'
-import type { MapColorMode } from '@/game/entities/globe/types'
+import type { MapColorMode, NormalizedColor } from '@/game/entities/globe/types'
+
+export interface ProvinceData {
+  id: number
+  controller: string
+  owner: string
+}
+
+export interface CountriesData {
+  tags: Record<string, { color: NormalizedColor }>
+  provinces: ProvinceData[]
+}
 import { MapParser } from '@/game/services/map-parser'
 import type { Entity } from '@/game/types/entity'
 import type { IView } from '@/game/types/view'
@@ -26,6 +37,7 @@ export interface MapViewContext extends IView {
   scene: CustomScene
   parser: MapParser
   colorMode: MapColorMode
+  countryData: CountriesData | null
   textBox: GenericTextBox
   mapModeSelector: GenericSelector<MapColorMode>
   raycaster: Raycaster

@@ -22,7 +22,14 @@ export function handleClicks(ctx: MapViewContext, event: MouseEvent): void {
       if (provinceId > 0) {
         ctx.map.selectProvince(provinceId)
         const terrainType = ctx.map.getProvinceTerrain(provinceId)
-        ctx.textBox?.setText(`Selected Province ID: ${provinceId} | Terrain: ${terrainType}`)
+        let text = `Selected Province ID: ${provinceId} | Terrain: ${terrainType}`
+        if (ctx.countryData?.provinces) {
+          const provData = ctx.countryData.provinces.find(p => p.id === provinceId)
+          if (provData) {
+            text += ` | Country: ${provData.owner}`
+          }
+        }
+        ctx.textBox?.setText(text)
       }
     }
   }
