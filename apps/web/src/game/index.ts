@@ -1,5 +1,6 @@
 import { MapView } from '@/game/views/map'
 import { LoadingScreen } from '@/game/ui/loading'
+import type { WorldData } from '@map-game/shared'
 
 import type { IView } from './types/view'
 
@@ -7,6 +8,7 @@ export class Game {
   private activeView: IView | null = null
   private container: HTMLElement
   private loadingScreen: LoadingScreen
+  private worldData: WorldData | null = null
 
   constructor(container: HTMLElement) {
     this.container = container
@@ -17,10 +19,37 @@ export class Game {
    * Inicia o ciclo de vida do jogo e carrega a tela inicial (Mapa)
    */
   public async start(): Promise<void> {
-    // A primeira view já começa sendo o mapa
-    const mapView: IView = new MapView(this.container)
+    this.loadingScreen.show()
+    try {
+      // Busca o estado do jogo (contexto de países)
+      await this.loadGameState()
 
-    await this.switchView(mapView)
+      // A primeira view já começa sendo o mapa, recebendo o estado buscado pelo Game
+      const mapView: IView = new MapView(this.container, this.worldData)
+
+      await this.switchView(mapView)
+    } finally {
+      await this.loadingScreen.hide()
+    }
+  }
+
+  /**
+   * Busca e salva o estado geral do jogo
+   */
+  private async loadGameState(): Promise<void> {
+    try {
+      const [countriesRes, provincesRes] = await Promise.all([
+        fetch('/countries.json'),
+        fetch('/definitions.json')
+      ])
+      
+      this.worldData = {
+        countries: await countriesRes.json(),
+        provinces: await provincesRes.json()
+      }
+    } catch (e) {
+      console.warn('Failed to load map data in Game state', e)
+    }
   }
 
   /**

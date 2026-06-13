@@ -17,7 +17,8 @@ import { handleClicks } from './handle-clicks'
 import { setupControls } from './setup-controls'
 import { setupElements } from './setup-elements'
 import { handleFrame, setupParser, setupScene } from './setup-map'
-import type { CountriesData, MapViewContext } from './types'
+import type { WorldData } from '@map-game/shared'
+import type { MapViewContext } from './types'
 
 export class MapView implements MapViewContext {
   public container: HTMLElement
@@ -36,26 +37,20 @@ export class MapView implements MapViewContext {
   public scene!: CustomScene
   public parser!: MapParser
   public colorMode: MapColorMode = 'political'
-  public countryData: CountriesData | null = null
+  public worldData: WorldData | null = null
 
   public raycaster = new Raycaster()
   public mouse = new Vector2()
 
-  constructor(container: HTMLElement, colorMode: MapColorMode = 'political') {
+  constructor(container: HTMLElement, worldData: WorldData | null = null, colorMode: MapColorMode = 'political') {
     this.container = container
+    this.worldData = worldData
     this.colorMode = colorMode
   }
 
   async load(): Promise<void> {
     this.background = new StaticBackground(this.container, '/bg.png')
     this.entities.push(this.background)
-
-    try {
-      const res = await fetch('/countries.json')
-      this.countryData = await res.json() as CountriesData
-    } catch (e) {
-      console.warn('Failed to load countries.json', e)
-    }
 
     setupScene(this, this.onFrame)
     setupControls(this, this.onClick)
@@ -95,11 +90,13 @@ export class MapView implements MapViewContext {
     this.colorMode = mode
     let customColors: Map<number, [number, number, number]> | undefined = undefined
 
-    if (mode === 'political' && this.countryData) {
+    if (mode === 'political' && this.worldData) {
       customColors = new Map()
-      const { tags, provinces } = this.countryData
+      const { countries, provinces } = this.worldData
+      const countryMap = new Map(countries.map(c => [c.tag, c]))
+      
       for (const prov of provinces) {
-        const country = tags[prov.owner]
+        const country = countryMap.get(prov.owner)
         if (country && country.color) {
           customColors.set(prov.id, country.color)
         }

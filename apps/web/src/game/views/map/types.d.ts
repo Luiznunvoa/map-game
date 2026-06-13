@@ -7,16 +7,7 @@ import { StaticBackground } from '@/game/entities/background'
 import { Map3D } from '@/game/entities/globe'
 import type { MapColorMode, NormalizedColor } from '@/game/entities/globe/types'
 
-export interface ProvinceData {
-  id: number
-  controller: string
-  owner: string
-}
-
-export interface CountriesData {
-  tags: Record<string, { color: NormalizedColor }>
-  provinces: ProvinceData[]
-}
+import { WorldData } from '@map-game/shared'
 import { MapParser } from '@/game/services/map-parser'
 import type { Entity } from '@/game/types/entity'
 import type { IView } from '@/game/types/view'
@@ -37,7 +28,7 @@ export interface MapViewContext extends IView {
   scene: CustomScene
   parser: MapParser
   colorMode: MapColorMode
-  countryData: CountriesData | null
+  worldData: WorldData | null
   textBox: GenericTextBox
   mapModeSelector: GenericSelector<MapColorMode>
   raycaster: Raycaster

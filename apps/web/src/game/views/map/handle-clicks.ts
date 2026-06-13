@@ -23,8 +23,8 @@ export function handleClicks(ctx: MapViewContext, event: MouseEvent): void {
         ctx.map.selectProvince(provinceId)
         const terrainType = ctx.map.getProvinceTerrain(provinceId)
         let text = `Selected Province ID: ${provinceId} | Terrain: ${terrainType}`
-        if (ctx.countryData?.provinces) {
-          const provData = ctx.countryData.provinces.find(p => p.id === provinceId)
+        if (ctx.worldData?.provinces) {
+          const provData = ctx.worldData.provinces.find(p => p.id === provinceId)
           if (provData) {
             text += ` | Country: ${provData.owner}`
           }
