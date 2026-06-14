@@ -1,6 +1,6 @@
 import { networkAdapter } from '@/lib/network'
 import { MapService } from '@/services/http/map-service'
-import type { ParsedMapData, RawBitmap } from '@/types/data'
+import type { IdBufferWithStats,ParsedMapData, RawBitmap } from '@/types/data'
 
 export type ParserStatus = 'idle' | 'loading' | 'done' | 'error'
 
@@ -12,7 +12,7 @@ export interface ParserProgress {
 export interface MapParserState {
   status: ParserStatus
   progress: ParserProgress
-  data: (ParsedMapData & { provincesBitmap: RawBitmap }) | null
+  data: (ParsedMapData & { provincesBitmap: RawBitmap; idBufferResult: IdBufferWithStats }) | null
   error: string | null
 }
 
@@ -21,7 +21,7 @@ type Listener = (state: MapParserState) => void
 export class MapParser {
   private status: ParserStatus = 'idle'
   private progress: ParserProgress = { value: 0, stage: '' }
-  private data: (ParsedMapData & { provincesBitmap: RawBitmap }) | null = null
+  private data: (ParsedMapData & { provincesBitmap: RawBitmap; idBufferResult: IdBufferWithStats }) | null = null
   private error: string | null = null
 
   private aborted = false
@@ -77,13 +77,16 @@ export class MapParser {
         rgbData[i * 3 + 2] = imgData.data[i * 4 + 2]
       }
 
-      const richData: ParsedMapData & { provincesBitmap: RawBitmap } = {
+      const provincesBitmap = {
+        width: imgData.width,
+        height: imgData.height,
+        data: rgbData,
+      }
+
+      const richData: ParsedMapData & { provincesBitmap: RawBitmap; idBufferResult: IdBufferWithStats } = {
         ...rawData,
-        provincesBitmap: {
-          width: imgData.width,
-          height: imgData.height,
-          data: rgbData
-        }
+        provincesBitmap,
+        idBufferResult: rawData.idBufferResult,
       }
 
       this.progress = { value: 1.0, stage: 'Pronto!' }

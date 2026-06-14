@@ -6,7 +6,10 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "lint": "bunx eslint .",
+    "lint:fix": "bunx eslint . --fix",
+    "typecheck": "bunx tsc --noEmit"
   },
   "devDependencies": {
     "@stylistic/eslint-plugin": "^5.10.0",

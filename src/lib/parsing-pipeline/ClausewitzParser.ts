@@ -1,4 +1,4 @@
-export type ClausewitzValue = string | number | boolean | ClausewitzObject | ClausewitzValue[];
+export type ClausewitzValue = string | number | boolean | ClausewitzObject | ClausewitzValue[]
 export interface ClausewitzObject {
   [key: string]: ClausewitzValue;
 }

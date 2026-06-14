@@ -13,12 +13,12 @@ import ATMOSPHERE_FRAG from '@/shaders/globe.atmosphere.frag.glsl?raw'
 import ATMOSPHERE_VERT from '@/shaders/globe.atmosphere.vert.glsl?raw'
 import FRAGMENT_SHADER from '@/shaders/globe.frag.glsl?raw'
 import VERTEX_SHADER from '@/shaders/globe.vert.glsl?raw'
+import type { NormalizedColor, ProvinceId } from '@/types/data'
 import type { Entity } from '@/types/entity.js'
+import type { GlobeMapInput, MapColorMode, ProvinceGlobeConfig } from '@/types/globe'
 
 import type { ProvinceTextures as MapTextures } from './textures.js'
 import { buildProvinceTextures } from './textures.js'
-import type { GlobeMapInput, MapColorMode, ProvinceGlobeConfig } from '@/types/globe'
-import type { NormalizedColor, ProvinceId } from '@/types/data'
 
 export class Map3D implements Entity {
   public group: Group

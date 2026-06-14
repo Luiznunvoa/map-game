@@ -1,8 +1,8 @@
 import type { ProvinceData } from '@/types/data'
 import type { Adjacency, ProvinceDefinition } from '@/types/data'
 
-export type ColorToProvince = Record<string, ProvinceDefinition>;
-export type IdToProvince = Record<number, ProvinceDefinition>;
+export type ColorToProvince = Record<string, ProvinceDefinition>
+export type IdToProvince = Record<number, ProvinceDefinition>
 
 export interface ParsedDefinitionsAndAdjacencies {
   byColor: ColorToProvince;

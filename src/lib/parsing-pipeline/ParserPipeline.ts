@@ -1,3 +1,5 @@
+import type { ParsedMapData, RawBitmap } from '@/types/data'
+
 import { parseBmp } from './BmpParser.js'
 import { buildIdBuffer } from './IdBuffer.js'
 import type { FileLoader } from './io.js'
@@ -5,7 +7,6 @@ import { parseDefinitionsJson } from './JsonParser.js'
 import {
   parseDefaultMap,
 } from './MapFileParsers.js'
-import type { ParsedMapData, RawBitmap } from '@/types/data'
 
 export interface PipelineOptions {
   onProgress?: (progress: number, stage: string) => void;
@@ -73,9 +74,11 @@ export async function runParserPipeline(
     }
   }
 
+  report(0.82, 'Calculando terrenos e buffers…')
+  const idBufferResult = buildIdBuffer(provincesBitmap, provinces)
+  const { idBuffer } = idBufferResult
+
   if (terrainBitmap.width > 0 && terrain.indexToTerrain && Object.keys(terrain.indexToTerrain).length > 0) {
-    report(0.82, 'Calculando terrenos das províncias por pixel…')
-    const { idBuffer } = buildIdBuffer(provincesBitmap, provinces)
     const totalPixels = provincesBitmap.width * provincesBitmap.height
 
     const provinceTerrainCounts: Record<number, Record<string, number>> = {}
@@ -136,6 +139,7 @@ export async function runParserPipeline(
     continents,
     provincesBitmap,
     terrainBitmap,
+    idBufferResult,
   }
 
   logSummary(result)

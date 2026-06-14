@@ -1,10 +1,11 @@
+import type { DefaultMap, ProvinceId } from '@/types/data'
+
+import type { ClausewitzObject } from './ClausewitzParser.js'
 import {
   getNumber,
   getString,
   parseClausewitz,
 } from './ClausewitzParser.js'
-import type { ClausewitzObject } from './ClausewitzParser.js'
-import type { DefaultMap, ProvinceId } from '@/types/data'
 
 export function parseDefaultMap(content: string): DefaultMap {
   const obj = parseClausewitz(content)

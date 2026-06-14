@@ -5,13 +5,10 @@ import {
   UnsignedByteType,
 } from 'three'
 
-
-import type { IdBufferWithStats } from '@/lib/parsing-pipeline/index.js'
-import { buildIdBuffer } from '@/lib/parsing-pipeline/index.js'
+import type { IdBufferWithStats,NormalizedColor, ProvinceId } from '@/types/data'
+import type { GlobeMapInput, MapColorMode } from '@/types/globe'
 
 import { fillPalette, floatRgbToRgbaBytes } from './palette.js'
-import type { GlobeMapInput, MapColorMode } from '@/types/globe'
-import type { NormalizedColor, ProvinceId } from '@/types/data'
 
 export interface ProvinceTextures {
   idTexture: DataTexture;
@@ -29,14 +26,10 @@ export function buildProvinceTextures(
   data: GlobeMapInput,
   initialMode: MapColorMode = 'province',
 ): ProvinceTextures {
-  const { provincesBitmap, provinces, provinceById, defaultMap, terrain, continents, regions } = data
+  const { provincesBitmap, provinceById, defaultMap, terrain, continents, regions, idBufferResult } = data
   const { width, height } = provincesBitmap
 
-  console.time('[ProvinceTextures] buildIdBuffer')
-  const idResult = buildIdBuffer(provincesBitmap, provinces)
-  console.timeEnd('[ProvinceTextures] buildIdBuffer')
-
-  const { idBuffer, maxProvinceId, stats } = idResult
+  const { idBuffer, maxProvinceId, stats } = idBufferResult
   const rgbaIds = new Uint8Array(width * height * 4)
   for (let i = 0; i < idBuffer.length; i++) {
     const id = idBuffer[i]

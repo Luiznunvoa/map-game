@@ -50,6 +50,7 @@ export class MapService {
       continents: oldData.continents,
       provincesBitmapUrl: bitmapToUrl(oldData.provincesBitmap),
       terrainBitmapUrl: bitmapToUrl(oldData.terrainBitmap),
+      idBufferResult: oldData.idBufferResult,
     }
   }
 

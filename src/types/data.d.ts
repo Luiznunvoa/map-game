@@ -81,10 +81,32 @@ export interface DefaultMap {
   };
 }
 
-export type ColorToProvince = Record<string, ProvinceDefinition>;
-export type IdToProvince = Record<number, ProvinceDefinition>;
-export type RegionMap = Record<string, ProvinceId[]>;
-export type ContinentMap = Record<string, ProvinceId[]>;
+export type ColorToProvince = Record<string, ProvinceDefinition>
+export type IdToProvince = Record<number, ProvinceDefinition>
+export type RegionMap = Record<string, ProvinceId[]>
+export type ContinentMap = Record<string, ProvinceId[]>
+
+export interface ProvinceStats {
+  id: ProvinceId;
+  pixelCount: number;
+  sumX: number;
+  sumY: number;
+  minX: number;
+  minY: number;
+  maxX: number;
+  maxY: number;
+}
+
+export interface IdBufferResult {
+  idBuffer: Uint16Array;
+  maxProvinceId: number;
+  orphanPixelCount: number;
+  foundIds: ProvinceId[];
+}
+
+export interface IdBufferWithStats extends IdBufferResult {
+  stats: Record<ProvinceId, ProvinceStats>;
+}
 
 export interface ParsedMapData {
   defaultMap: DefaultMap;
@@ -96,4 +118,5 @@ export interface ParsedMapData {
   continents: ContinentMap;
   provincesBitmapUrl: string; // Used to fetch the raw image
   terrainBitmapUrl?: string;
+  idBufferResult: IdBufferWithStats;
 }

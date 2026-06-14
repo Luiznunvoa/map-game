@@ -1,27 +1,4 @@
-import type { ProvinceDefinition, ProvinceId, RawBitmap } from '@/types/data'
-
-export type ColorToProvince = Record<string, ProvinceDefinition>
-export interface IdBufferResult {
-  idBuffer: Uint16Array;
-  maxProvinceId: number;
-  orphanPixelCount: number;
-  foundIds: Set<ProvinceId>;
-}
-
-export interface ProvinceStats {
-  id: ProvinceId;
-  pixelCount: number;
-  sumX: number;
-  sumY: number;
-  minX: number;
-  minY: number;
-  maxX: number;
-  maxY: number;
-}
-
-export interface IdBufferWithStats extends IdBufferResult {
-  stats: Map<ProvinceId, ProvinceStats>;
-}
+import type { ColorToProvince, IdBufferWithStats, ProvinceStats, RawBitmap } from '@/types/data'
 
 export function buildIdBuffer(
   bitmap: RawBitmap,
@@ -31,8 +8,8 @@ export function buildIdBuffer(
   const totalPixels = width * height
 
   const idBuffer = new Uint16Array(totalPixels)
-  const stats = new Map<ProvinceId, ProvinceStats>()
-  const foundIds = new Set<ProvinceId>()
+  const stats: Record<number, ProvinceStats> = {}
+  const foundIds = new Set<number>()
 
   let orphanPixelCount = 0
   let maxProvinceId = 0
@@ -49,7 +26,6 @@ export function buildIdBuffer(
 
       if (!def) {
         orphanPixelCount++
-        // idBuffer já é 0 por padrão (Uint16Array inicializa com zeros)
         continue
       }
 
@@ -59,8 +35,7 @@ export function buildIdBuffer(
       foundIds.add(id)
       if (id > maxProvinceId) maxProvinceId = id
 
-      // Acumular estatísticas
-      let stat = stats.get(id)
+      let stat = stats[id]
       if (!stat) {
         stat = {
           id,
@@ -72,7 +47,7 @@ export function buildIdBuffer(
           maxX: x,
           maxY: y,
         }
-        stats.set(id, stat)
+        stats[id] = stat
       }
 
       stat.pixelCount++
@@ -98,7 +73,7 @@ export function buildIdBuffer(
     `[IdBuffer] ${foundIds.size} províncias encontradas no bitmap, maxId=${maxProvinceId}`,
   )
 
-  return { idBuffer, maxProvinceId, orphanPixelCount, foundIds, stats }
+  return { idBuffer, maxProvinceId, orphanPixelCount, foundIds: Array.from(foundIds), stats }
 }
 
 export function getCentroid(stat: ProvinceStats): { x: number; y: number } {
