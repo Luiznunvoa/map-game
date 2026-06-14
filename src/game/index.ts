@@ -1,9 +1,9 @@
-import type { WorldData } from '@map-game/shared'
 
 import { LoadingScreen } from '@/ui/loading'
 import { MapView } from '@/views/map'
 
 import type { IView } from '../types/view'
+import type { WorldData } from '@/types/data'
 
 export class Game {
   private activeView: IView | null = null

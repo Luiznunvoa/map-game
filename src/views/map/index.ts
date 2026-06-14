@@ -1,4 +1,3 @@
-import type { WorldData } from '@map-game/shared'
 import { Raycaster, Vector2 } from 'three'
 
 import { KeyboardControls } from '@/controls/keyboard-control'
@@ -19,6 +18,7 @@ import { setupControls } from './setup-controls'
 import { setupElements } from './setup-elements'
 import { handleFrame, setupParser, setupScene } from './setup-map'
 import type { MapViewContext } from './types'
+import type { WorldData } from '@/types/data'
 
 export class MapView implements MapViewContext {
   public container: HTMLElement

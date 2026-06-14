@@ -15,6 +15,7 @@ export interface ProvinceData {
   owner: string
   controller: string | null
   adjacencies?: ProvinceAdjacency[]
+  population: number
 }
 
 export interface CountryData {
@@ -33,3 +34,4 @@ export interface WorldData {
   countries: CountryData[]
   provinces: ProvinceData[]
 }
+
