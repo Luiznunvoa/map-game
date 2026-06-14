@@ -4,7 +4,7 @@ import ts from 'typescript-eslint'
 
 export default ts.config(
   {
-    ignores: ['dist/**', 'node_modules/**', 'bun.lock', 'bun.lockb'],
+    ignores: ['**/dist/**', 'node_modules/**', 'bun.lock', 'bun.lockb'],
   },
   ...ts.configs.recommended,
   {

@@ -5,7 +5,7 @@ import {
   WebGLRenderer,
 } from 'three'
 
-import type { Entity } from '@/game/types/entity'
+import type { Entity } from '@/types/entity'
 
 export interface CameraConfig {
   fov?: number

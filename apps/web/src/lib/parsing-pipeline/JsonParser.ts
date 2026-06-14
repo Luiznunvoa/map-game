@@ -1,4 +1,5 @@
 import type { ProvinceData } from '@map-game/shared'
+
 import type {
   Adjacency,
   ColorToProvince,
@@ -49,7 +50,7 @@ export function parseDefinitionsJson(content: string): ParsedDefinitionsAndAdjac
           type: adj.type,
           through: adj.through || 0,
           data: adj.data || 0,
-          comment: adj.comment || ''
+          comment: adj.comment || '',
         })
       }
     }

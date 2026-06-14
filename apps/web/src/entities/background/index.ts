@@ -1,6 +1,6 @@
 import { Group } from 'three'
 
-import type { Entity } from '@/game/types/entity'
+import type { Entity } from '@/types/entity'
 
 export class StaticBackground implements Entity {
   public group: Group

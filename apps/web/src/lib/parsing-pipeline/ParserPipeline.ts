@@ -1,7 +1,7 @@
 import { parseBmp } from './BmpParser.js'
-import { parseDefinitionsJson } from './JsonParser.js'
 import { buildIdBuffer } from './IdBuffer.js'
 import type { FileLoader } from './io.js'
+import { parseDefinitionsJson } from './JsonParser.js'
 import {
   parseDefaultMap,
 } from './MapFileParsers.js'
@@ -135,7 +135,7 @@ export async function runParserPipeline(
 
   // Etapa 7: regions.json
   report(0.85, 'Lendo regions.json…')
-  let regions: ParsedMapData['regions'] = new Map()
+  const regions: ParsedMapData['regions'] = new Map()
   if (loader.has('regions.json')) {
     const regionText = await loader.readText('regions.json')
     const rawRegions = JSON.parse(regionText)
@@ -146,7 +146,7 @@ export async function runParserPipeline(
 
   // Etapa 8: continents.json
   report(0.90, 'Lendo continents.json…')
-  let continents: ParsedMapData['continents'] = new Map()
+  const continents: ParsedMapData['continents'] = new Map()
   if (loader.has('continents.json')) {
     const continentText = await loader.readText('continents.json')
     const rawContinents = JSON.parse(continentText)

@@ -1,9 +1,9 @@
 import { Vector3 } from 'three'
 
-import type { InputState } from '@/game/controls/orbit-control'
-import { Map3D } from '@/game/entities/globe'
-import { MapParser } from '@/game/services/map-parser'
+import type { InputState } from '@/controls/orbit-control'
+import { Map3D } from '@/entities/globe'
 import { CustomScene, type FrameState } from '@/lib/scene'
+import { MapParser } from '@/services/map-parser'
 
 import type { MapViewContext } from './types'
 

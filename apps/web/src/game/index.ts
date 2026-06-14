@@ -1,8 +1,9 @@
-import { MapView } from '@/game/views/map'
-import { LoadingScreen } from '@/game/ui/loading'
 import type { WorldData } from '@map-game/shared'
 
-import type { IView } from './types/view'
+import { LoadingScreen } from '@/ui/loading'
+import { MapView } from '@/views/map'
+
+import type { IView } from '../types/view'
 
 export class Game {
   private activeView: IView | null = null
@@ -40,12 +41,12 @@ export class Game {
     try {
       const [countriesRes, provincesRes] = await Promise.all([
         fetch('/countries.json'),
-        fetch('/definitions.json')
+        fetch('/definitions.json'),
       ])
       
       this.worldData = {
         countries: await countriesRes.json(),
-        provinces: await provincesRes.json()
+        provinces: await provincesRes.json(),
       }
     } catch (e) {
       console.warn('Failed to load map data in Game state', e)

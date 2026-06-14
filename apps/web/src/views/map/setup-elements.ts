@@ -1,7 +1,7 @@
-import type { MapColorMode } from '@/game/entities/globe/types'
-import { PerformanceMonitor } from '@/game/ui/fps-counter'
-import { GenericSelector } from '@/game/ui/selector'
-import { GenericTextBox } from '@/game/ui/text-box'
+import type { MapColorMode } from '@/entities/globe/types'
+import { PerformanceMonitor } from '@/ui/fps-counter'
+import { GenericSelector } from '@/ui/selector'
+import { GenericTextBox } from '@/ui/text-box'
 
 import type { MapViewContext } from './types'
 

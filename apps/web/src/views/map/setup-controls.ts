@@ -1,6 +1,6 @@
-import { KeyboardControls } from '@/game/controls/keyboard-control'
-import { MouseControls } from '@/game/controls/mouse-controls'
-import { OrbitControl } from '@/game/controls/orbit-control'
+import { KeyboardControls } from '@/controls/keyboard-control'
+import { MouseControls } from '@/controls/mouse-controls'
+import { OrbitControl } from '@/controls/orbit-control'
 
 import type { MapViewContext } from './types'
 

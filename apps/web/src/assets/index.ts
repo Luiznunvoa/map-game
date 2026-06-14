@@ -1,6 +1,6 @@
-import doge from "./images/doge.png"
+import doge from './images/doge.png'
 
 export { 
-  doge 
-};
+  doge, 
+}
 

@@ -1,4 +1,4 @@
-import { SelectionBox } from '@/game/ui/selection-box'
+import { SelectionBox } from '@/ui/selection-box'
 
 export class MouseControls {
   private isCameraDragging: boolean = false

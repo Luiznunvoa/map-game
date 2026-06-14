@@ -1,4 +1,4 @@
-import { doge } from "@/assets"
+import { doge } from '@/assets'
 
 export class LoadingScreen {
   private container: HTMLElement
