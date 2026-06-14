@@ -39,14 +39,15 @@ export class Game {
    */
   private async loadGameState(): Promise<void> {
     try {
-      const [countriesRes, provincesRes] = await Promise.all([
-        fetch('/countries.json'),
-        fetch('/definitions.json'),
+      const { mapService } = await import('@/services/http/map-service')
+      const [countriesData, provincesData] = await Promise.all([
+        mapService.fetchCountries(),
+        mapService.fetchDefinitions(),
       ])
       
       this.worldData = {
-        countries: await countriesRes.json(),
-        provinces: await provincesRes.json(),
+        countries: countriesData,
+        provinces: provincesData,
       }
     } catch (e) {
       console.warn('Failed to load map data in Game state', e)

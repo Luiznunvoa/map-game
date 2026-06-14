@@ -1,12 +1,11 @@
-import { createFetchFileLoader, runParserPipeline } from '@/lib/parsing-pipeline'
 import type { ParsedMapData } from '@/types/data'
 import type { IRequestClient } from '@/types/network'
 
 export class MapService {
-  // private _http: IRequestClient
+  private http: IRequestClient
 
-  constructor(_http: IRequestClient) {
-    // this._http = http
+  constructor(http: IRequestClient) {
+    this.http = http
   }
 
   /**
@@ -14,44 +13,11 @@ export class MapService {
    * Substitui todo o parsing-pipeline no cliente.
    */
   public async fetchParsedMapData(): Promise<ParsedMapData> {
-    console.warn('Rodando o parsing-pipeline em MOCK no front-end!')
-    
-    const loader = createFetchFileLoader('') // Arquivos estão na raiz do public/
-    const oldData = await runParserPipeline(loader, {
-      onProgress: (value, stage) => {
-        console.log(`[Map Mock Pipeline] ${stage}: ${Math.round(value * 100)}%`)
-      },
+    const res = await this.http.request<void, ParsedMapData>({
+      method: 'GET',
+      url: '/api/maps/current',
     })
-
-    const bitmapToUrl = (bitmap: { width: number; height: number; data: Uint8Array }): string => {
-      const canvas = document.createElement('canvas')
-      canvas.width = bitmap.width
-      canvas.height = bitmap.height
-      const ctx = canvas.getContext('2d')!
-      const imgData = ctx.createImageData(bitmap.width, bitmap.height)
-      
-      for (let i = 0; i < bitmap.width * bitmap.height; i++) {
-        imgData.data[i * 4] = bitmap.data[i * 3]     
-        imgData.data[i * 4 + 1] = bitmap.data[i * 3 + 1] 
-        imgData.data[i * 4 + 2] = bitmap.data[i * 3 + 2] 
-        imgData.data[i * 4 + 3] = 255                
-      }
-      ctx.putImageData(imgData, 0, 0)
-      return canvas.toDataURL('image/png')
-    }
-
-    return {
-      defaultMap: oldData.defaultMap,
-      provinces: oldData.provinces,
-      provinceById: oldData.provinceById,
-      adjacencies: oldData.adjacencies,
-      terrain: oldData.terrain,
-      regions: oldData.regions,
-      continents: oldData.continents,
-      provincesBitmapUrl: bitmapToUrl(oldData.provincesBitmap),
-      terrainBitmapUrl: bitmapToUrl(oldData.terrainBitmap),
-      idBufferResult: oldData.idBufferResult,
-    }
+    return res.data
   }
 
   /**
@@ -84,4 +50,29 @@ export class MapService {
     ctx.drawImage(imgBitmap, 0, 0)
     return ctx.getImageData(0, 0, canvas.width, canvas.height)
   }
+
+  /**
+   * Retorna os dados dos países do jogo
+   */
+  public async fetchCountries(): Promise<any> {
+    const res = await this.http.request<void, any>({
+      method: 'GET',
+      url: '/api/maps/current/countries.json',
+    })
+    return res.data
+  }
+
+  /**
+   * Retorna as definições base de todas as províncias
+   */
+  public async fetchDefinitions(): Promise<any> {
+    const res = await this.http.request<void, any>({
+      method: 'GET',
+      url: '/api/maps/current/definitions.json',
+    })
+    return res.data
+  }
 }
+
+import { networkAdapter } from '@/lib/network'
+export const mapService = new MapService(networkAdapter.http)

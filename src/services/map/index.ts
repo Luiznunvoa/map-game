@@ -1,5 +1,5 @@
-import { networkAdapter } from '@/lib/network'
-import { MapService } from '@/services/http/map-service'
+
+import { MapService,mapService } from '@/services/http/map-service'
 import type { IdBufferWithStats,ParsedMapData, RawBitmap } from '@/types/data'
 
 export type ParserStatus = 'idle' | 'loading' | 'done' | 'error'
@@ -28,8 +28,8 @@ export class MapParser {
   private listeners = new Set<Listener>()
   private mapService: MapService
 
-  constructor(mapService?: MapService) {
-    this.mapService = mapService ?? new MapService(networkAdapter.http)
+  constructor(customMapService?: MapService) {
+    this.mapService = customMapService ?? mapService
   }
 
   public subscribe(listener: Listener): () => void {
@@ -66,7 +66,8 @@ export class MapParser {
       this.progress = { value: 0.8, stage: 'Decodificando imagens...' }
       this.notify()
 
-      const imgData = await this.mapService.fetchRawImageData(rawData.provincesBitmapUrl)
+      const provincesUrl = rawData.provincesBitmapUrl || '/api/maps/current/provinces.bmp'
+      const imgData = await this.mapService.fetchRawImageData(provincesUrl)
       if (this.aborted) return
 
       // Converte RGBA (4 canais) do Canvas para RGB linear (3 canais) exigido pelo IdBuffer
