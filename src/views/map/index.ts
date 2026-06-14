@@ -7,7 +7,6 @@ import { StaticBackground } from '@/entities/background'
 import { Map3D } from '@/entities/globe'
 import type { MapColorMode } from '@/entities/globe/types'
 import { CustomScene, type FrameState } from '@/lib/scene'
-import { MapParser } from '@/services/map-parser'
 import type { Entity } from '@/types/entity'
 import { PerformanceMonitor } from '@/ui/fps-counter'
 import { GenericSelector } from '@/ui/selector'
@@ -19,6 +18,7 @@ import { setupElements } from './setup-elements'
 import { handleFrame, setupParser, setupScene } from './setup-map'
 import type { MapViewContext } from './types'
 import type { WorldData } from '@/types/data'
+import type { MapParser } from '@/services/map'
 
 export class MapView implements MapViewContext {
   public container: HTMLElement

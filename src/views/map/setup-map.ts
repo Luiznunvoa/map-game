@@ -3,7 +3,7 @@ import { Vector3 } from 'three'
 import type { InputState } from '@/controls/orbit-control'
 import { Map3D } from '@/entities/globe'
 import { CustomScene, type FrameState } from '@/lib/scene'
-import { MapParser } from '@/services/map-parser'
+import { MapParser } from '@/services/map'
 
 import type { MapViewContext } from './types'
 
