@@ -1,4 +1,4 @@
-import type { CountryState, PlayerState, ProvinceState } from "./state";
+import type { CountryState, PlayerState, ProvinceState } from './state'
 
 export interface HttpRequest<TBody = unknown> {
   method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
@@ -21,9 +21,9 @@ export interface IRequestClient {
   ): Promise<HttpResponse<TResponse>>;
 }
 
-export type WebSocketMessageHandler<T = unknown> = (data: T) => void;
-export type WebSocketConnectionHandler = () => void;
-export type WebSocketErrorHandler = (error: unknown) => void;
+export type WebSocketMessageHandler<T = unknown> = (data: T) => void
+export type WebSocketConnectionHandler = () => void
+export type WebSocketErrorHandler = (error: unknown) => void
 
 export interface IWebSocketClient<TEvents extends Record<string, unknown> = Record<string, unknown>> {
   connect(endpoint: string): Promise<void>;
@@ -37,7 +37,7 @@ export interface IWebSocketClient<TEvents extends Record<string, unknown> = Reco
 }
 
 export interface INetworkAdapter<
-  TEvents extends Record<string, unknown> = Record<string, unknown>
+  TEvents extends Record<string, unknown> = Record<string, unknown>,
 > {
   http: IRequestClient;
   ws: IWebSocketClient<TEvents>;
@@ -49,5 +49,10 @@ type AppWebSocketEvents = {
   'user:state': PlayerState
   'province:state': ProvinceState
   'country:state': CountryState
-};
+}
 
+export interface IHttpStateService<TState, TId = number | string> {
+  onStateChange(handler: (data: TState) => void): () => void;
+  sendStateUpdate(data: TState): void;
+  fetch(id: TId): Promise<TState>;
+}

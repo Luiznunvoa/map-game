@@ -1,0 +1,6 @@
+version: v1
+plugins:
+  - plugin: es        # TypeScript
+    out: src/gen
+  - plugin: go        # Go
+    out: internal/gen

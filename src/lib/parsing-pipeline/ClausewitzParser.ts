@@ -1,4 +1,7 @@
-import type { ClausewitzObject, ClausewitzValue } from './types.js'
+export type ClausewitzValue = string | number | boolean | ClausewitzObject | ClausewitzValue[];
+export interface ClausewitzObject {
+  [key: string]: ClausewitzValue;
+}
 
 type TokenType =
   | 'LBRACE'   // {

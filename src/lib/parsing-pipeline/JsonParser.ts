@@ -1,11 +1,8 @@
-import type { ProvinceData } from '@map-game/shared'
+import type { ProvinceData } from '@/types/data'
+import type { Adjacency, ProvinceDefinition } from '@/types/data'
 
-import type {
-  Adjacency,
-  ColorToProvince,
-  IdToProvince,
-  ProvinceDefinition,
-} from './types.js'
+export type ColorToProvince = Record<string, ProvinceDefinition>;
+export type IdToProvince = Record<number, ProvinceDefinition>;
 
 export interface ParsedDefinitionsAndAdjacencies {
   byColor: ColorToProvince;
@@ -14,8 +11,8 @@ export interface ParsedDefinitionsAndAdjacencies {
 }
 
 export function parseDefinitionsJson(content: string): ParsedDefinitionsAndAdjacencies {
-  const byColor: ColorToProvince = new Map()
-  const byId: IdToProvince = new Map()
+  const byColor: ColorToProvince = {}
+  const byId: IdToProvince = {}
   const adjacencies: Adjacency[] = []
 
   let data: ProvinceData[] = []
@@ -31,15 +28,15 @@ export function parseDefinitionsJson(content: string): ParsedDefinitionsAndAdjac
 
     if (prov.color && prov.color.length >= 3) {
       const [r, g, b] = prov.color
-      const def: ProvinceDefinition = { id: prov.id, r, g, b, name: prov.id.toString() }
+      const def: ProvinceDefinition = { id: prov.id, color: [r, g, b], name: prov.id.toString() }
       
       const key = `${r},${g},${b}`
-      if (byColor.has(key)) {
-        console.warn(`[JsonParser] Cor duplicada "${key}" (ID ${prov.id} vs ${byColor.get(key)!.id})`)
+      if (byColor[key]) {
+        console.warn(`[JsonParser] Cor duplicada "${key}" (ID ${prov.id} vs ${byColor[key].id})`)
       }
       
-      byColor.set(key, def)
-      byId.set(prov.id, def)
+      byColor[key] = def
+      byId[prov.id] = def
     }
 
     if (prov.adjacencies && prov.adjacencies.length > 0) {
@@ -56,7 +53,7 @@ export function parseDefinitionsJson(content: string): ParsedDefinitionsAndAdjac
     }
   }
 
-  console.info(`[JsonParser] definitions.json: ${byId.size} províncias e ${adjacencies.length} adjacências carregadas`)
+  console.info(`[JsonParser] definitions.json: ${Object.keys(byId).length} províncias e ${adjacencies.length} adjacências carregadas`)
 
   return { byColor, byId, adjacencies }
 }

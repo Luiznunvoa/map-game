@@ -13,12 +13,12 @@ import ATMOSPHERE_FRAG from '@/shaders/globe.atmosphere.frag.glsl?raw'
 import ATMOSPHERE_VERT from '@/shaders/globe.atmosphere.vert.glsl?raw'
 import FRAGMENT_SHADER from '@/shaders/globe.frag.glsl?raw'
 import VERTEX_SHADER from '@/shaders/globe.vert.glsl?raw'
-import type { ProvinceId } from '@/lib/parsing-pipeline/index.js'
 import type { Entity } from '@/types/entity.js'
 
 import type { ProvinceTextures as MapTextures } from './textures.js'
 import { buildProvinceTextures } from './textures.js'
-import type { GlobeMapInput, MapColorMode, NormalizedColor, ProvinceGlobeConfig } from './types.js'
+import type { GlobeMapInput, MapColorMode, ProvinceGlobeConfig } from '@/types/globe'
+import type { NormalizedColor, ProvinceId } from '@/types/data'
 
 export class Map3D implements Entity {
   public group: Group
@@ -119,17 +119,20 @@ export class Map3D implements Entity {
   }
 
   public getProvinceTerrain(id: ProvinceId): string {
-    if (this.defaultMap.seaStarts.has(id)) {
+    if (this.defaultMap.seaStarts.includes(id)) {
       return 'ocean'
     }
-    return this.terrain.overrides.get(id) ?? 'plains'
+    return this.terrain.overrides[id] ?? 'plains'
   }
 
   public selectProvince(id: ProvinceId): void {
     this.uniforms.u_selectedId.value = id
   }
 
-  public setColorMode(mode: MapColorMode, customColors?: Map<ProvinceId, NormalizedColor>): void {
+  public setColorMode(
+    mode: MapColorMode,
+    customColors?: Record<ProvinceId, NormalizedColor>,
+  ): void {
     this.textures.updatePalette(mode, customColors)
   }
 

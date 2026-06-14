@@ -21,8 +21,6 @@ export { runParserPipeline } from './ParserPipeline.js'
 export type {
   Adjacency,
   AdjacencyType,
-  ClausewitzObject,
-  ClausewitzValue,
   ColorToProvince,
   ContinentMap,
   CountryTag,
@@ -31,8 +29,12 @@ export type {
   ParsedMapData,
   ProvinceDefinition,
   ProvinceId,
-  RawBitmap,
   RegionMap,
   TerrainCategory,
   TerrainDefinition,
-} from './types.js'
+} from '@/types/data'
+
+export type {
+  ClausewitzObject,
+  ClausewitzValue,
+} from './ClausewitzParser.js'

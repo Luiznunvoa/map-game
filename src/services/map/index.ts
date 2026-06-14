@@ -1,4 +1,6 @@
-import { createFetchFileLoader, type FileLoader, type ParsedMapData, type PipelineOptions,runParserPipeline } from '@/lib/parsing-pipeline'
+import { networkAdapter } from '@/lib/network'
+import { MapService } from '@/services/http/map-service'
+import type { ParsedMapData, RawBitmap } from '@/types/data'
 
 export type ParserStatus = 'idle' | 'loading' | 'done' | 'error'
 
@@ -10,7 +12,7 @@ export interface ParserProgress {
 export interface MapParserState {
   status: ParserStatus
   progress: ParserProgress
-  data: ParsedMapData | null
+  data: (ParsedMapData & { provincesBitmap: RawBitmap }) | null
   error: string | null
 }
 
@@ -19,11 +21,16 @@ type Listener = (state: MapParserState) => void
 export class MapParser {
   private status: ParserStatus = 'idle'
   private progress: ParserProgress = { value: 0, stage: '' }
-  private data: ParsedMapData | null = null
+  private data: (ParsedMapData & { provincesBitmap: RawBitmap }) | null = null
   private error: string | null = null
 
   private aborted = false
   private listeners = new Set<Listener>()
+  private mapService: MapService
+
+  constructor(mapService?: MapService) {
+    this.mapService = mapService ?? new MapService(networkAdapter.http)
+  }
 
   public subscribe(listener: Listener): () => void {
     this.listeners.add(listener)
@@ -44,27 +51,43 @@ export class MapParser {
     this.listeners.forEach(fn => fn(state))
   }
 
-
-  public async parse(loader: FileLoader): Promise<void> {
+  public async fetchMap(): Promise<void> {
     this.aborted = false
     this.status = 'loading'
     this.error = null
     this.data = null
-    this.progress = { value: 0, stage: 'Iniciando…' }
+    this.progress = { value: 0.5, stage: 'Baixando dados do servidor...' }
     this.notify()
 
-    const options: PipelineOptions = {
-      onProgress: (value, stage) => {
-        if (this.aborted) return
-        this.progress = { value, stage }
-        this.notify()
-      },
-    }
-
     try {
-      const result = await runParserPipeline(loader, options)
+      const rawData = await this.mapService.fetchParsedMapData()
       if (this.aborted) return
-      this.data = result
+
+      this.progress = { value: 0.8, stage: 'Decodificando imagens...' }
+      this.notify()
+
+      const imgData = await this.mapService.fetchRawImageData(rawData.provincesBitmapUrl)
+      if (this.aborted) return
+
+      // Converte RGBA (4 canais) do Canvas para RGB linear (3 canais) exigido pelo IdBuffer
+      const rgbData = new Uint8Array(imgData.width * imgData.height * 3)
+      for (let i = 0; i < imgData.width * imgData.height; i++) {
+        rgbData[i * 3 + 0] = imgData.data[i * 4 + 0]
+        rgbData[i * 3 + 1] = imgData.data[i * 4 + 1]
+        rgbData[i * 3 + 2] = imgData.data[i * 4 + 2]
+      }
+
+      const richData: ParsedMapData & { provincesBitmap: RawBitmap } = {
+        ...rawData,
+        provincesBitmap: {
+          width: imgData.width,
+          height: imgData.height,
+          data: rgbData
+        }
+      }
+
+      this.progress = { value: 1.0, stage: 'Pronto!' }
+      this.data = richData
       this.status = 'done'
       this.notify()
     } catch (err) {
@@ -76,9 +99,14 @@ export class MapParser {
     }
   }
 
-  public parseFromUrl(baseUrl: string, availableKeys?: string[]): Promise<void> {
-    const loader = createFetchFileLoader(baseUrl, availableKeys)
-    return this.parse(loader)
+  /** @deprecated Use fetchMap instead */
+  public parse(): Promise<void> {
+    return this.fetchMap()
+  }
+
+  /** @deprecated Use fetchMap instead */
+  public parseFromUrl(): Promise<void> {
+    return this.fetchMap()
   }
 
   public reset(): void {

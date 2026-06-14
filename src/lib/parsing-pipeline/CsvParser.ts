@@ -1,37 +1,24 @@
-import type {
-  Adjacency,
-  AdjacencyType,
-  ColorToProvince,
-  IdToProvince,
-  ProvinceDefinition,
-} from './types.js'
+import type { Adjacency, AdjacencyType, ProvinceDefinition } from '@/types/data'
+
+export type ColorToProvince = Record<string, ProvinceDefinition>;
+export type IdToProvince = Record<number, ProvinceDefinition>;
 
 export interface ParsedDefinitions {
   byColor: ColorToProvince;
   byId: IdToProvince;
 }
 
-
 export function parseDefinitionCsv(content: string): ParsedDefinitions {
-  const byColor: ColorToProvince = new Map()
-  const byId: IdToProvince = new Map()
-
   const lines = content.split(/\r?\n/)
+  const byColor: ColorToProvince = {}
+  const byId: IdToProvince = {}
 
-  for (let lineNum = 0; lineNum < lines.length; lineNum++) {
-    const raw = lines[lineNum].trim()
+  for (let i = 1; i < lines.length; i++) {
+    const line = lines[i].trim()
+    if (!line || line.startsWith('#')) continue
 
-    // Ignorar linhas vazias e comentários
-    if (!raw || raw.startsWith('#')) continue
-
-    // Ignorar linha de cabeçalho (começa com "province")
-    if (raw.toLowerCase().startsWith('province')) continue
-
-    const parts = raw.split(';')
-    if (parts.length < 5) {
-      console.warn(`[CsvParser] Linha ${lineNum + 1}: campos insuficientes, pulando: "${raw}"`)
-      continue
-    }
+    const parts = line.split(';')
+    if (parts.length < 5) continue
 
     const id = parseInt(parts[0], 10)
     const r = parseInt(parts[1], 10)
@@ -40,75 +27,67 @@ export function parseDefinitionCsv(content: string): ParsedDefinitions {
     const name = parts[4].trim()
 
     if (isNaN(id) || isNaN(r) || isNaN(g) || isNaN(b)) {
-      console.warn(
-        `[CsvParser] Linha ${lineNum + 1}: campos numéricos inválidos, pulando: "${raw}"`,
-      )
       continue
     }
 
-    if (id <= 0) {
-      // ID 0 é reservado para oceano/wasteland — não entra no mapa
-      continue
-    }
-
-    const def: ProvinceDefinition = { id, r, g, b, name }
+    const def: ProvinceDefinition = { id, color: [r, g, b], name }
     const key = `${r},${g},${b}`
 
-    if (byColor.has(key)) {
+    if (byColor[key]) {
       console.warn(
-        `[CsvParser] Linha ${lineNum + 1}: cor duplicada "${key}" (ID ${id} vs ${byColor.get(key)!.id})`,
+        `[CsvParser] Linha ${i + 1}: cor duplicada "${key}" (ID ${id} vs ${byColor[key].id})`,
       )
     }
 
-    byColor.set(key, def)
-    byId.set(id, def)
+    byColor[key] = def
+    byId[id] = def
   }
 
   console.info(
-    `[CsvParser] definition.csv: ${byId.size} províncias carregadas`,
+    `[CsvParser] definition.csv: ${Object.keys(byId).length} províncias carregadas`,
   )
 
   return { byColor, byId }
 }
 
 export function parseAdjacenciesCsv(content: string): Adjacency[] {
-  const result: Adjacency[] = []
   const lines = content.split(/\r?\n/)
+  const result: Adjacency[] = []
 
-  for (let lineNum = 0; lineNum < lines.length; lineNum++) {
-    const raw = lines[lineNum].trim()
+  for (let i = 1; i < lines.length; i++) {
+    const line = lines[i].trim()
+    if (!line || line.startsWith('#')) continue
 
-    // Ignorar linhas vazias e comentários
-    if (!raw || raw.startsWith('#')) continue
-
-    const parts = raw.split(';')
-    if (parts.length < 5) {
-      console.warn(
-        `[CsvParser] adjacencies.csv linha ${lineNum + 1}: campos insuficientes, pulando: "${raw}"`,
-      )
-      continue
-    }
+    const parts = line.split(';')
+    if (parts.length < 3) continue
 
     const from = parseInt(parts[0], 10)
     const to = parseInt(parts[1], 10)
-    const typeStr = parts[2].trim().toLowerCase()
-    const through = parseInt(parts[3], 10)
-    const data = parseInt(parts[4], 10)
-    const comment = (parts[5] ?? '').trim()
+    const type = parts[2].trim() as AdjacencyType
 
-    if (isNaN(from) || isNaN(to) || isNaN(through)) {
-      console.warn(
-        `[CsvParser] adjacencies.csv linha ${lineNum + 1}: campos numéricos inválidos, pulando`,
-      )
-      continue
+    if (isNaN(from) || isNaN(to) || from === -1 || to === -1) continue
+
+    const adj: Adjacency = { from, to, type }
+
+    if (parts[3] && parts[3].trim() !== '-1' && parts[3].trim() !== '') {
+      adj.through = parseInt(parts[3], 10)
+    }
+    if (parts[4]) {
+      const dataStr = parts[4].trim()
+      const dataX = parseInt(parts[5], 10)
+      const dataY = parseInt(parts[6], 10)
+
+      if (dataStr && !isNaN(dataX) && !isNaN(dataY)) {
+        adj.data = dataX 
+      }
+    }
+    if (parts[7]) {
+      adj.comment = parts[7].trim()
     }
 
-    const type: AdjacencyType =
-      typeStr === 'sea' ? 'sea' : typeStr === 'impassable' ? 'impassable' : 'land'
-
-    result.push({ from, to, type, through, data: isNaN(data) ? 0 : data, comment })
+    result.push(adj)
   }
 
-  console.info(`[CsvParser] adjacencies.csv: ${result.length} adjacências carregadas`)
+  console.info(`[CsvParser] adjacencies.csv: ${result.length} lidas`)
   return result
 }

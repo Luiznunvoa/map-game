@@ -1,19 +1,18 @@
-import type { ParsedMapData } from '@/lib/parsing-pipeline/types'
-
-export type NormalizedColor = [number, number, number]
+import type { ParsedMapData, RawBitmap } from './data'
 
 export type MapColorMode = 'political' | 'province' | 'terrain' | 'continent' | 'region'
 
 export type GlobeMapInput = Pick<
   ParsedMapData,
-  | 'provincesBitmap'
   | 'provinces'
   | 'provinceById'
   | 'defaultMap'
   | 'terrain'
   | 'continents'
   | 'regions'
->
+> & {
+  provincesBitmap: RawBitmap;
+}
 
 export interface ProvinceGlobeConfig {
   radius?: number;

@@ -5,12 +5,13 @@ import {
   UnsignedByteType,
 } from 'three'
 
-import type { ProvinceId } from '@/lib/parsing-pipeline/index.js'
+
 import type { IdBufferWithStats } from '@/lib/parsing-pipeline/index.js'
 import { buildIdBuffer } from '@/lib/parsing-pipeline/index.js'
 
 import { fillPalette, floatRgbToRgbaBytes } from './palette.js'
-import type { GlobeMapInput, MapColorMode, NormalizedColor } from './types.js'
+import type { GlobeMapInput, MapColorMode } from '@/types/globe'
+import type { NormalizedColor, ProvinceId } from '@/types/data'
 
 export interface ProvinceTextures {
   idTexture: DataTexture;
@@ -20,7 +21,7 @@ export interface ProvinceTextures {
   mapHeight: number;
   idBuffer: Uint16Array;
   stats: IdBufferWithStats['stats'];
-  updatePalette(mode: MapColorMode, customColors?: Map<ProvinceId, NormalizedColor>): void;
+  updatePalette(mode: MapColorMode, customColors?: Record<ProvinceId, NormalizedColor>): void;
   dispose(): void;
 }
 
@@ -57,9 +58,11 @@ export function buildProvinceTextures(
   paletteFloat[1] = 0.18
   paletteFloat[2] = 0.40
 
-  fillPalette(paletteFloat, paletteSize, initialMode, provinceById, defaultMap.seaStarts, terrain, continents, regions)
+  const seaStartsSet = new Set(defaultMap.seaStarts)
 
-  const paletteBytes = floatRgbToRgbaBytes(paletteFloat, paletteSize, defaultMap.seaStarts)
+  fillPalette(paletteFloat, paletteSize, initialMode, provinceById, seaStartsSet, terrain, continents, regions)
+
+  const paletteBytes = floatRgbToRgbaBytes(paletteFloat, paletteSize, seaStartsSet)
 
   const paletteTexture = new DataTexture(paletteBytes, paletteSize, 1, RGBAFormat, UnsignedByteType)
   paletteTexture.minFilter = NearestFilter
@@ -68,16 +71,16 @@ export function buildProvinceTextures(
 
   function updatePalette(
     mode: MapColorMode,
-    customColors?: Map<ProvinceId, NormalizedColor>,
+    customColors?: Record<ProvinceId, NormalizedColor>,
   ): void {
     paletteFloat.fill(0)
     paletteFloat[0] = 0.08
     paletteFloat[1] = 0.18
     paletteFloat[2] = 0.40
 
-    fillPalette(paletteFloat, paletteSize, mode, provinceById, defaultMap.seaStarts, terrain, continents, regions, customColors)
+    fillPalette(paletteFloat, paletteSize, mode, provinceById, seaStartsSet, terrain, continents, regions, customColors)
 
-    const newBytes = floatRgbToRgbaBytes(paletteFloat, paletteSize, defaultMap.seaStarts)
+    const newBytes = floatRgbToRgbaBytes(paletteFloat, paletteSize, seaStartsSet)
     paletteBytes.set(newBytes)
     paletteTexture.needsUpdate = true
   }

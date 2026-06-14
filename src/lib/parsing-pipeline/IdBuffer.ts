@@ -1,5 +1,6 @@
-import type { ColorToProvince, ProvinceId,RawBitmap } from './types.js'
+import type { ProvinceDefinition, ProvinceId, RawBitmap } from '@/types/data'
 
+export type ColorToProvince = Record<string, ProvinceDefinition>
 export interface IdBufferResult {
   idBuffer: Uint16Array;
   maxProvinceId: number;
@@ -44,7 +45,7 @@ export function buildIdBuffer(
       const b = data[pixelBase + 2]
 
       const key = `${r},${g},${b}`
-      const def = colorMap.get(key)
+      const def = colorMap[key]
 
       if (!def) {
         orphanPixelCount++

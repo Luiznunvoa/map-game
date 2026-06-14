@@ -1,4 +1,4 @@
-import type { MapColorMode } from '@/entities/globe/types'
+import type { MapColorMode } from '@/types/globe'
 import { PerformanceMonitor } from '@/ui/fps-counter'
 import { GenericSelector } from '@/ui/selector'
 import { GenericTextBox } from '@/ui/text-box'

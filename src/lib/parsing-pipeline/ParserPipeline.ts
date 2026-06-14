@@ -5,7 +5,7 @@ import { parseDefinitionsJson } from './JsonParser.js'
 import {
   parseDefaultMap,
 } from './MapFileParsers.js'
-import type { ParsedMapData, RawBitmap } from './types.js'
+import type { ParsedMapData, RawBitmap } from '@/types/data'
 
 export interface PipelineOptions {
   onProgress?: (progress: number, stage: string) => void;
@@ -16,10 +16,15 @@ export interface PipelineOptions {
 //   | { ok: false; error: string };
 
 
+export interface PipelineResult extends Omit<ParsedMapData, 'provincesBitmapUrl' | 'terrainBitmapUrl'> {
+  provincesBitmap: RawBitmap;
+  terrainBitmap: RawBitmap;
+}
+
 export async function runParserPipeline(
   loader: FileLoader,
   options: PipelineOptions = {},
-): Promise<ParsedMapData> {
+): Promise<PipelineResult> {
   const { onProgress } = options
 
   const report = (progress: number, stage: string) => {
@@ -27,137 +32,101 @@ export async function runParserPipeline(
     console.info(`[Pipeline] ${Math.round(progress * 100)}% — ${stage}`)
   }
 
-  // Etapa 1: definitions.json
   report(0.05, 'Lendo definitions.json…')
   const definitionText = await loader.readText('definitions.json')
   const { byColor: provinces, byId: provinceById, adjacencies } = parseDefinitionsJson(definitionText)
 
-  // Etapa 2: default.map 
   report(0.10, 'Lendo default.map…')
   const defaultMapText = await loader.readText('default.map')
   const defaultMap = parseDefaultMap(defaultMapText)
 
-  // Etapa 3: provinces.bmp
   report(0.15, 'Lendo provinces.bmp… (pode demorar)')
-  const provincesBmpBytes = await loader.readBytes(defaultMap.files.provinces)
+  const provincesBmpBytes = await loader.readBytes(defaultMap.files!.provinces)
   report(0.45, 'Decodificando provinces.bmp…')
-  const provincesBitmap = await parseBmp(provincesBmpBytes, defaultMap.files.provinces)
+  const provincesBitmap = await parseBmp(provincesBmpBytes, defaultMap.files!.provinces)
   report(0.60, `provinces.bmp decodificado: ${provincesBitmap.width}×${provincesBitmap.height}`)
 
-  // Etapa 4: terrain.bmp
   let terrainBitmap: RawBitmap = { width: 0, height: 0, data: new Uint8Array(0) }
-  if (loader.has(defaultMap.files.terrain)) {
+  if (loader.has(defaultMap.files!.terrain)) {
     report(0.62, 'Lendo terrain.bmp…')
-    const terrainBmpBytes = await loader.readBytes(defaultMap.files.terrain)
+    const terrainBmpBytes = await loader.readBytes(defaultMap.files!.terrain)
     report(0.72, 'Decodificando terrain.bmp…')
-    terrainBitmap = await parseBmp(terrainBmpBytes, defaultMap.files.terrain)
-  } else {
-    console.warn('[Pipeline] terrain.bmp não encontrado — terreno não será calculado por pixel')
+    terrainBitmap = await parseBmp(terrainBmpBytes, defaultMap.files!.terrain)
   }
 
-  // adjacencies já extraídas na etapa 1
-
-  // Etapa 6: terrain.json
   report(0.80, 'Lendo terrain.json…')
   let terrain: ParsedMapData['terrain'] = {
     paletteSize: 64,
-    categories: new Map(),
-    overrides: new Map(),
-    indexToTerrain: new Map(),
+    categories: {},
+    overrides: {},
+    indexToTerrain: {},
   }
-  if (loader.has(defaultMap.files.terrainDefinition)) {
-    const terrainText = await loader.readText(defaultMap.files.terrainDefinition)
+  if (loader.has(defaultMap.files!.terrainDefinition)) {
+    const terrainText = await loader.readText(defaultMap.files!.terrainDefinition)
     const rawTerrain = JSON.parse(terrainText)
     
-    const categoriesMap = new Map()
-    for (const [k, v] of Object.entries(rawTerrain.categories)) categoriesMap.set(k, v)
-    
-    const overridesMap = new Map()
-    if (rawTerrain.overrides) {
-      for (const [k, v] of Object.entries(rawTerrain.overrides)) overridesMap.set(Number(k), v as string)
-    }
-    
-    const indexToTerrainMap = new Map()
-    if (rawTerrain.indexToTerrain) {
-      for (const [k, v] of Object.entries(rawTerrain.indexToTerrain)) indexToTerrainMap.set(Number(k), v as string)
-    }
-
     terrain = {
       paletteSize: rawTerrain.paletteSize || 64,
-      categories: categoriesMap,
-      overrides: overridesMap,
-      indexToTerrain: indexToTerrainMap,
+      categories: rawTerrain.categories || {},
+      overrides: rawTerrain.overrides || {},
+      indexToTerrain: rawTerrain.indexToTerrain || {},
     }
   }
 
-  // Calcular terreno predominante para cada província usando terrain.bmp e indexToTerrain
-  if (terrainBitmap.width > 0 && terrain.indexToTerrain && terrain.indexToTerrain.size > 0) {
+  if (terrainBitmap.width > 0 && terrain.indexToTerrain && Object.keys(terrain.indexToTerrain).length > 0) {
     report(0.82, 'Calculando terrenos das províncias por pixel…')
     const { idBuffer } = buildIdBuffer(provincesBitmap, provinces)
     const totalPixels = provincesBitmap.width * provincesBitmap.height
 
-    // Mapa de ProvinceId -> Map of TerrainType -> count
-    const provinceTerrainCounts = new Map<number, Map<string, number>>()
+    const provinceTerrainCounts: Record<number, Record<string, number>> = {}
 
     for (let i = 0; i < totalPixels; i++) {
       const provinceId = idBuffer[i]
-      if (provinceId === 0) continue // Pular ID 0 (oceano puro)
+      if (provinceId === 0) continue
 
-      const terrainIdx = terrainBitmap.data[i * 3] // index está nos canais R, G, B
-      const terrainType = terrain.indexToTerrain.get(terrainIdx)
+      const terrainIdx = terrainBitmap.data[i * 3]
+      const terrainType = terrain.indexToTerrain[terrainIdx]
       if (!terrainType) continue
 
-      let counts = provinceTerrainCounts.get(provinceId)
-      if (!counts) {
-        counts = new Map<string, number>()
-        provinceTerrainCounts.set(provinceId, counts)
-      }
-      counts.set(terrainType, (counts.get(terrainType) || 0) + 1)
+      if (!provinceTerrainCounts[provinceId]) provinceTerrainCounts[provinceId] = {}
+      provinceTerrainCounts[provinceId][terrainType] = (provinceTerrainCounts[provinceId][terrainType] || 0) + 1
     }
 
-    for (const [provinceId, counts] of provinceTerrainCounts.entries()) {
-      if (terrain.overrides.has(provinceId)) continue // preservar override manual do terrain.txt
+    for (const [provinceIdStr, counts] of Object.entries(provinceTerrainCounts)) {
+      const provinceId = Number(provinceIdStr)
+      if (terrain.overrides[provinceId]) continue
 
       let maxType = ''
       let maxCount = 0
-      for (const [type, count] of counts.entries()) {
+      for (const [type, count] of Object.entries(counts)) {
         if (count > maxCount) {
           maxCount = count
           maxType = type
         }
       }
       if (maxType) {
-        terrain.overrides.set(provinceId, maxType)
+        terrain.overrides[provinceId] = maxType
       }
     }
-    console.info(`[Pipeline] Terrenos pixel-based calculados para ${provinceTerrainCounts.size} províncias.`)
   }
 
-  // Etapa 7: regions.json
   report(0.85, 'Lendo regions.json…')
-  const regions: ParsedMapData['regions'] = new Map()
+  const regions: ParsedMapData['regions'] = {}
   if (loader.has('regions.json')) {
     const regionText = await loader.readText('regions.json')
-    const rawRegions = JSON.parse(regionText)
-    for (const [name, ids] of Object.entries(rawRegions)) {
-      regions.set(name, ids as number[])
-    }
+    Object.assign(regions, JSON.parse(regionText))
   }
 
-  // Etapa 8: continents.json
   report(0.90, 'Lendo continents.json…')
-  const continents: ParsedMapData['continents'] = new Map()
+  const continents: ParsedMapData['continents'] = {}
   if (loader.has('continents.json')) {
     const continentText = await loader.readText('continents.json')
-    const rawContinents = JSON.parse(continentText)
-    for (const [name, ids] of Object.entries(rawContinents)) {
-      continents.set(name, ids as number[])
-    }
+    Object.assign(continents, JSON.parse(continentText))
   }
 
   report(1.0, 'Parsing concluído!')
 
-  const result: ParsedMapData = {
+  const result: PipelineResult = {
     defaultMap,
     provinces,
     provinceById,
@@ -173,14 +142,14 @@ export async function runParserPipeline(
   return result
 }
 
-function logSummary(data: ParsedMapData): void {
+function logSummary(data: PipelineResult): void {
   const { provincesBitmap, provinceById, defaultMap, adjacencies, regions, continents } = data
   console.group('[Pipeline] Resumo do parsing:')
   console.log(`  Bitmap: ${provincesBitmap.width}×${provincesBitmap.height} px`)
-  console.log(`  Províncias definidas: ${provinceById.size}`)
-  console.log(`  Províncias marítimas (sea_starts): ${defaultMap.seaStarts.size}`)
+  console.log(`  Províncias definidas: ${Object.keys(provinceById).length}`)
+  console.log(`  Províncias marítimas (sea_starts): ${defaultMap.seaStarts.length}`)
   console.log(`  Adjacências especiais: ${adjacencies.length}`)
-  console.log(`  Regiões: ${regions.size}`)
-  console.log(`  Continentes: ${continents.size}`)
+  console.log(`  Regiões: ${Object.keys(regions).length}`)
+  console.log(`  Continentes: ${Object.keys(continents).length}`)
   console.groupEnd()
 }

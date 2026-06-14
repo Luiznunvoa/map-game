@@ -1,4 +1,4 @@
-import type { RawBitmap } from './types.js'
+import type { RawBitmap } from '@/types/data'
 
 
 export async function parseBmp(

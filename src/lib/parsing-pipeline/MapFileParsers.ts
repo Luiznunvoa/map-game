@@ -3,11 +3,8 @@ import {
   getString,
   parseClausewitz,
 } from './ClausewitzParser.js'
-import type {
-  ClausewitzObject,
-  DefaultMap,
-  ProvinceId,
-} from './types.js'
+import type { ClausewitzObject } from './ClausewitzParser.js'
+import type { DefaultMap, ProvinceId } from '@/types/data'
 
 export function parseDefaultMap(content: string): DefaultMap {
   const obj = parseClausewitz(content)
@@ -44,7 +41,7 @@ export function parseDefaultMap(content: string): DefaultMap {
 
   return {
     maxProvinces,
-    seaStarts,
+    seaStarts: Array.from(seaStarts),
     files: {
       definitions: (getString(obj, 'definitions') ?? 'definition.csv').replace(/"/g, ''),
       provinces: (getString(obj, 'provinces') ?? 'provinces.bmp').replace(/"/g, ''),

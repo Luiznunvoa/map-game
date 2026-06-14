@@ -7,16 +7,7 @@ import { MapParser } from '@/services/map'
 
 import type { MapViewContext } from './types'
 
-const MOCK_API = ''
-const AVAILABLE_FILES = [
-  'definitions.json',
-  'provinces.bmp',
-  'default.map',
-  'terrain.json',
-  'regions.json',
-  'continents.json',
-  'terrain.bmp',
-]
+
 
 export function setupScene(ctx: MapViewContext, onFrame: (state: FrameState) => void): void {
   ctx.scene = new CustomScene(ctx.container, {
@@ -33,7 +24,7 @@ export function setupScene(ctx: MapViewContext, onFrame: (state: FrameState) => 
 
 export async function setupParser(ctx: MapViewContext): Promise<void> {
   ctx.parser = new MapParser()
-  ctx.parser.subscribe(({ status, data }) => {
+  ctx.parser.subscribe(({ status, data }: any) => {
     if (status === 'loading') return
     
     if (status === 'done' && data) {
@@ -51,7 +42,7 @@ export async function setupParser(ctx: MapViewContext): Promise<void> {
     }
   })
 
-  await ctx.parser.parseFromUrl(MOCK_API, AVAILABLE_FILES)
+  await ctx.parser.fetchMap()
 }
 
 export function handleFrame(ctx: MapViewContext, state: FrameState): void {

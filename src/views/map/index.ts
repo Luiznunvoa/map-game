@@ -5,8 +5,9 @@ import { MouseControls } from '@/controls/mouse-controls'
 import { OrbitControl } from '@/controls/orbit-control'
 import { StaticBackground } from '@/entities/background'
 import { Map3D } from '@/entities/globe'
-import type { MapColorMode } from '@/entities/globe/types'
 import { CustomScene, type FrameState } from '@/lib/scene'
+import type { MapParser } from '@/services/map'
+import type { WorldData, NormalizedColor } from '@/types/data'
 import type { Entity } from '@/types/entity'
 import { PerformanceMonitor } from '@/ui/fps-counter'
 import { GenericSelector } from '@/ui/selector'
@@ -17,8 +18,7 @@ import { setupControls } from './setup-controls'
 import { setupElements } from './setup-elements'
 import { handleFrame, setupParser, setupScene } from './setup-map'
 import type { MapViewContext } from './types'
-import type { WorldData } from '@/types/data'
-import type { MapParser } from '@/services/map'
+import type { MapColorMode } from '@/types/globe'
 
 export class MapView implements MapViewContext {
   public container: HTMLElement
@@ -86,23 +86,23 @@ export class MapView implements MapViewContext {
     this.mapModeSelector?.dispose()
   }
 
-  setColorMode(mode: MapColorMode): void {
-    this.colorMode = mode
-    let customColors: Map<number, [number, number, number]> | undefined = undefined
+  public setColorMode(viewName: MapColorMode): void {
+    if (!this.worldData) return
 
-    if (mode === 'political' && this.worldData) {
-      customColors = new Map()
-      const { countries, provinces } = this.worldData
-      const countryMap = new Map(countries.map(c => [c.tag, c]))
-      
-      for (const prov of provinces) {
-        const country = countryMap.get(prov.owner)
-        if (country && country.color) {
-          customColors.set(prov.id, country.color)
+    let customColors: Record<number, NormalizedColor> | undefined
+
+    if (viewName === 'political') {
+      customColors = {}
+      for (const prov of this.worldData.provinces) {
+        if (prov.owner && this.worldData.countries) {
+          const ownerCountry = this.worldData.countries.find(c => c.tag === prov.owner)
+          if (ownerCountry) {
+            customColors[prov.id] = ownerCountry.color
+          }
         }
       }
     }
 
-    this.map?.setColorMode(mode, customColors)
+    this.map?.setColorMode(viewName, customColors)
   }
 }

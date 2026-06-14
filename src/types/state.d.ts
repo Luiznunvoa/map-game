@@ -1,5 +1,6 @@
-import { MapSchema, Schema, type } from '@colyseus/schema'
-import { ProvinceData, type CountryData, type PlayerData } from './data'
+import { Schema } from '@colyseus/schema'
+
+import { type CountryData, type PlayerData,ProvinceData } from './data'
 
 export type ProvinceState = Pick<ProvinceData, 'id' 
   | 'owner' 
@@ -9,8 +10,8 @@ export type ProvinceState = Pick<ProvinceData, 'id'
 >
 
 export type PlayerState = Pick<PlayerData, 'id' 
-  | 'countryTag',
->;
+  | 'countryTag'
+>
 
 export type CountryState = Pick<CountryData, 'tag' 
   | 'money'
