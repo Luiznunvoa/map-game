@@ -1,5 +1,8 @@
+import { SelectionBox } from '@/game/ui/selection-box'
+
 export class MouseControls {
-  private isDragging: boolean = false
+  private isCameraDragging: boolean = false
+  private isSelecting: boolean = false
   private startX: number = 0
   private startY: number = 0
   
@@ -11,6 +14,7 @@ export class MouseControls {
   // Elemento alvo (pode ser o window, document, ou um canvas específico)
   private target: HTMLElement | Window
   private onClickCallback?: (e: MouseEvent) => void
+  private selectionBox: SelectionBox | null = null
 
   constructor(target: HTMLElement | Window = window) {
     this.target = target
@@ -21,33 +25,67 @@ export class MouseControls {
     this.onClickCallback = callback
   }
 
+  private getSelectionBox(): SelectionBox {
+    if (!this.selectionBox) {
+      this.selectionBox = new SelectionBox()
+    }
+    return this.selectionBox
+  }
+
   // Arrow functions preservam o contexto do 'this'
   private onMouseDown = (e: Event): void => {
     const mouseEvent = e as MouseEvent
-    this.isDragging = true
-    this.startX = mouseEvent.clientX
-    this.startY = mouseEvent.clientY
+    
+    // Left button (0) for selection, middle button (1) for camera
+    if (mouseEvent.button === 0) {
+      this.isSelecting = true
+      this.startX = mouseEvent.clientX
+      this.startY = mouseEvent.clientY
+      
+      const box = this.getSelectionBox()
+      box.show(this.startX, this.startY)
+    } else if (mouseEvent.button === 1) {
+      mouseEvent.preventDefault()
+      this.isCameraDragging = true
+      this.startX = mouseEvent.clientX
+      this.startY = mouseEvent.clientY
+    }
   }
 
   private onMouseUp = (e: Event): void => {
     const mouseEvent = e as MouseEvent
-    this.isDragging = false
+    
+    if (mouseEvent.button === 0 && this.isSelecting) {
+      this.isSelecting = false
+      if (this.selectionBox) {
+        this.selectionBox.hide()
+      }
 
-    const dx = mouseEvent.clientX - this.startX
-    const dy = mouseEvent.clientY - this.startY
-    const dist = Math.sqrt(dx * dx + dy * dy)
+      const dx = mouseEvent.clientX - this.startX
+      const dy = mouseEvent.clientY - this.startY
+      const dist = Math.sqrt(dx * dx + dy * dy)
 
-    // Se o arraste foi insignificante (menos de 5 pixels), trata-se de um clique
-    if (dist < 5 && this.onClickCallback) {
-      this.onClickCallback(mouseEvent)
+      // Se o arraste foi insignificante (menos de 5 pixels), trata-se de um clique
+      if (dist < 5 && this.onClickCallback) {
+        this.onClickCallback(mouseEvent)
+      }
+    } else if (mouseEvent.button === 1 && this.isCameraDragging) {
+      this.isCameraDragging = false
     }
   }
 
   private onMouseMove = (e: Event): void => {
     const mouseEvent = e as MouseEvent
-    if (this.isDragging) {
+    
+    if (this.isCameraDragging) {
       this.dragDeltaX += mouseEvent.movementX
       this.dragDeltaY += mouseEvent.movementY
+    } else if (this.isSelecting) {
+      const currentX = mouseEvent.clientX
+      const currentY = mouseEvent.clientY
+      
+      const box = this.getSelectionBox()
+      box.update(this.startX, this.startY, currentX, currentY)
     }
   }
 
@@ -91,5 +129,9 @@ export class MouseControls {
     this.target.removeEventListener('mouseup', this.onMouseUp)
     this.target.removeEventListener('mousemove', this.onMouseMove)
     this.target.removeEventListener('wheel', this.onWheel)
+    
+    if (this.selectionBox) {
+      this.selectionBox.dispose()
+    }
   }
 }

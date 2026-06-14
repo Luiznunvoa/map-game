@@ -25,13 +25,13 @@ export class OrbitControl {
 
   private readonly minRadius = 1.125
   private readonly maxRadius = 20
-  private readonly minPhi = 0.55
-  private readonly maxPhi = Math.PI - 0.55
+  private readonly minPhi = 0.50
+  private readonly maxPhi = Math.PI - 0.50
   
   // Velocidades ajustadas para diferentes tipos de input
   private readonly zoomSpeed = 0.0015
   private readonly keyOrbitSpeed = 0.03
-  private readonly mouseOrbitSpeed = 0.005
+  private readonly mouseOrbitSpeed = 0.0025
 
   constructor(initialRadius = 5) {
     this.radius = initialRadius
