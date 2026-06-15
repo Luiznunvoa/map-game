@@ -1,3 +1,5 @@
+import { html } from '@/lib/utils/html'
+
 export interface SelectorOption<T extends string | number> {
   value: T;
   label: string;
@@ -12,7 +14,7 @@ export interface SelectorConfig<T extends string | number> {
 }
 
 export class GenericSelector<T extends string | number> {
-  private element: HTMLDivElement
+  private element: HTMLElement
   private buttons: Map<T, HTMLButtonElement> = new Map()
   private currentValue: T
   private onChangeCallback: (value: T) => void
@@ -22,117 +24,58 @@ export class GenericSelector<T extends string | number> {
     this.currentValue = initialValue
     this.onChangeCallback = onChange
 
-    // Criar o container principal do seletor
-    this.element = document.createElement('div')
-    this.element.className = 'map-selector-container'
-    
-    // Estilos premium do container (Glassmorphism moderno)
-    this.element.style.position = 'absolute'
-    this.element.style.top = '20px'
-    this.element.style.right= '20px'
-    this.element.style.display = 'flex'
-    this.element.style.flexDirection = 'column'
-    this.element.style.gap = '8px'
-    this.element.style.padding = '12px'
-    this.element.style.backgroundColor = 'rgba(0, 0, 0, 0.65)' // slate-900 translúcido
-    this.element.style.borderRadius = '12px'
-    this.element.style.boxShadow = '0 10px 25px -5px rgba(0, 0, 0, 0.4), 0 8px 10px -6px rgba(0, 0, 0, 0.4)'
-    this.element.style.zIndex = '1000'
-    this.element.style.fontFamily = 'monospace'
-    this.element.style.userSelect = 'none'
+    const buttonsHtml = options.map(opt => `
+      <button class="px-4 py-2 text-xs font-semibold font-mono cursor-pointer outline-none transition-colors duration-200 rounded-md">
+        ${opt.label}
+      </button>
+    `).join('')
 
-    // Adicionar título se houver
-    if (title) {
-      const titleEl = document.createElement('div')
-      titleEl.innerText = title
-      titleEl.style.color = 'rgba(255, 255, 255, 1)'
-      titleEl.style.fontSize = '10px'
-      titleEl.style.fontWeight = '700'
-      titleEl.style.fontFamily = 'monospace'
-      titleEl.style.letterSpacing = '1px'
-      titleEl.style.paddingLeft = '4px'
-      titleEl.style.marginBottom = '2px'
-      this.element.appendChild(titleEl)
-    }
+    this.element = html`
+      <div class="absolute top-[70px] right-5 flex flex-col gap-2 p-3 bg-slate-900/65 backdrop-blur-md rounded-xl shadow-[0_10px_25px_-5px_rgba(0,0,0,0.4)] z-[1000] select-none">
+        ${title ? `<div class="text-white text-[10px] font-bold font-mono tracking-widest pl-1 -mb-1">${title}</div>` : ''}
+        <div class="flex gap-1">
+          ${buttonsHtml}
+        </div>
+      </div>
+    `
 
-    // Container dos botões
-    const btnContainer = document.createElement('div')
-    btnContainer.style.display = 'flex'
-    btnContainer.style.gap = '4px'
-    this.element.appendChild(btnContainer)
+    const btnNodes = this.element.querySelectorAll('button')
+    btnNodes.forEach((btn, index) => {
+      const opt = options[index]
+      this.buttons.set(opt.value, btn)
 
-    // Criar botões para cada opção
-    for (const opt of options) {
-      const btn = document.createElement('button')
-      btn.innerText = opt.label
-      
-      // Estilos base dos botões
-      btn.style.padding = '8px 16px'
-      btn.style.border = 'none'
-      btn.style.fontSize = '12px'
-      btn.style.fontWeight = '600'
-      btn.style.cursor = 'pointer'
-      btn.style.outline = 'none'
-      btn.style.fontFamily = 'monospace'
-      
-      // Aplicar estado inicial (ativo ou inativo)
       this.applyButtonState(btn, opt.value === initialValue)
 
-      // Efeito de hover
-      btn.addEventListener('mouseenter', () => {
-        if (opt.value !== this.currentValue) {
-          btn.style.backgroundColor = 'rgba(255, 255, 255, 0.08)'
-          btn.style.color = '#fff'
-        }
-      })
-      btn.addEventListener('mouseleave', () => {
-        if (opt.value !== this.currentValue) {
-          btn.style.backgroundColor = 'transparent'
-          btn.style.color = 'rgba(255, 255, 255, 0.7)'
-        }
-      })
-
-      // Clique do botão
       btn.addEventListener('click', () => {
         if (opt.value !== this.currentValue) {
           this.setValue(opt.value)
         }
       })
-
-      this.buttons.set(opt.value, btn)
-      btnContainer.appendChild(btn)
-    }
+    })
 
     container.appendChild(this.element)
   }
 
   private applyButtonState(btn: HTMLButtonElement, isActive: boolean): void {
     if (isActive) {
-      // Estado selecionado (Gradiante roxo/azul vibrante com sombra)
-      btn.style.backgroundColor = '#4f46e5' 
-      btn.style.color = '#ffffff'
+      btn.className = "px-4 py-2 text-xs font-semibold font-mono cursor-pointer outline-none transition-colors duration-200 bg-indigo-600 text-white rounded-md shadow"
     } else {
-      // Estado normal/desativado
-      btn.style.background = 'transparent'
-      btn.style.color = 'rgba(255, 255, 255, 0.7)'
+      btn.className = "px-4 py-2 text-xs font-semibold font-mono cursor-pointer outline-none transition-colors duration-200 bg-transparent text-white/70 hover:bg-white/10 hover:text-white rounded-md"
     }
   }
 
   public setValue(value: T): void {
-    // Restaurar estado do botão anteriormente ativo
     const oldBtn = this.buttons.get(this.currentValue)
     if (oldBtn) {
       this.applyButtonState(oldBtn, false)
     }
 
-    // Ativar novo botão
     this.currentValue = value
     const newBtn = this.buttons.get(value)
     if (newBtn) {
       this.applyButtonState(newBtn, true)
     }
 
-    // Disparar o callback
     this.onChangeCallback(value)
   }
 

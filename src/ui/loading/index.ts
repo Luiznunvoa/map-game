@@ -1,8 +1,9 @@
-import { doge } from '@/assets'
+import { bg, doge } from '@/assets'
+import { html } from '@/lib/utils/html'
 
 export class LoadingScreen {
   private container: HTMLElement
-  private overlayElement: HTMLDivElement | null = null
+  private overlayElement: HTMLElement | null = null
   private imagePath: string
 
   constructor(container: HTMLElement, imagePath: string = doge) {
@@ -11,31 +12,31 @@ export class LoadingScreen {
   }
 
   /**
-   * Mostra a tela de loading criando os elementos DOM
+   * Mostra a tela de loading criando os elementos via helper nativo
    */
   public show(): void {
     if (this.overlayElement) return
 
-    this.overlayElement = document.createElement('div')
-    this.overlayElement.className = 'game-loading-overlay'
+    this.overlayElement = html`
+      <div 
+        class="absolute inset-0 flex justify-center items-center z-[9999] bg-repeat transition-opacity duration-300"
+        style="background-image: url('${bg}');"
+      >
+        <div class="relative flex justify-center items-center w-32 h-32">
+          <!-- Spinner Ring -->
+          <div class="absolute inset-0 border-4 border-white/10 border-t-indigo-500 border-r-indigo-500 rounded-full animate-spin"></div>
+          
+          <!-- Inner Image -->
+          <img 
+            src="${this.imagePath}" 
+            alt="Loading" 
+            class="w-16 h-16 object-contain z-10 pointer-events-none" 
+            onerror="this.style.display='none'" 
+          />
+        </div>
+      </div>
+    `
 
-    const container = document.createElement('div')
-    container.className = 'game-loading-container'
-
-    const spinner = document.createElement('div')
-    spinner.className = 'game-loading-spinner'
-
-    const img = document.createElement('img')
-    img.className = 'game-loading-image'
-    img.src = this.imagePath
-    img.alt = 'Loading'
-    img.onerror = () => {
-      img.style.display = 'none'
-    }
-
-    container.appendChild(spinner)
-    container.appendChild(img)
-    this.overlayElement.appendChild(container)
     this.container.appendChild(this.overlayElement)
   }
 
@@ -48,9 +49,10 @@ export class LoadingScreen {
     const overlay = this.overlayElement
     this.overlayElement = null
 
-    overlay.classList.add('fade-out')
+    // Aplica as classes Tailwind para fade-out
+    overlay.classList.add('opacity-0', 'pointer-events-none')
     
-    // Aguarda o término da animação CSS de fade-out
+    // Aguarda o término da animação de transição (300ms definido na classe duration-300)
     await new Promise((resolve) => setTimeout(resolve, 300))
     overlay.remove()
   }

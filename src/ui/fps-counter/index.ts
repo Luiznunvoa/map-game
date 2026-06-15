@@ -1,29 +1,17 @@
+import { html } from '@/lib/utils/html'
+
 export class PerformanceMonitor {
-  private element: HTMLDivElement
+  private element: HTMLElement
   private frames: number = 0
   private prevTime: number
   private lastFrameTime: number
 
   constructor(parent: HTMLElement = document.body) {
-    this.element = document.createElement('div')
-    
-    Object.assign(this.element.style, {
-      position: 'absolute',
-      top: '10px',
-      left: '10px',
-      backgroundColor: 'rgba(0, 0, 0, 0.8)',
-      color: '#00ff00',
-      padding: '8px 12px',
-      fontFamily: 'monospace',
-      fontSize: '13px',
-      borderRadius: '6px',
-      pointerEvents: 'none',
-      zIndex: '9999',
-      lineHeight: '1.5',
-      whiteSpace: 'pre', // Permite o uso de \n no innerText
-    })
-
-    this.element.innerText = 'Inicializando monitor...'
+    this.element = html`
+      <div class="absolute top-3 left-3 bg-black/80 text-green-400 px-3 py-2 font-mono text-[13px] rounded-md pointer-events-none z-[9999] leading-relaxed whitespace-pre">
+        Inicializando monitor...
+      </div>
+    `
     parent.appendChild(this.element)
     
     this.prevTime = performance.now()
@@ -38,7 +26,7 @@ export class PerformanceMonitor {
     const frameLatency = currentTime - this.lastFrameTime
     this.lastFrameTime = currentTime
 
-    // Atualiza os textos apenas 1x por segundo para ser legível (não piscar na tela)
+    // Atualiza os textos apenas 1x por segundo para ser legível
     if (currentTime >= this.prevTime + 1000) {
       const fps = Math.round((this.frames * 1000) / (currentTime - this.prevTime))
       
@@ -48,7 +36,6 @@ export class PerformanceMonitor {
       // Tenta acessar a API de memória (Suportada no Chrome/Edge)
       const memory = (performance as any).memory
       if (memory) {
-        // Converte bytes para Megabytes (MB)
         const usedMB = (memory.usedJSHeapSize / 1048576).toFixed(1)
         const limitMB = (memory.jsHeapSizeLimit / 1048576).toFixed(1)
         text += `Memória:  ${usedMB} MB / ${limitMB} MB`
@@ -58,10 +45,10 @@ export class PerformanceMonitor {
 
       this.element.innerText = text
       
-      // Muda a cor geral do painel dependendo da performance
-      if (fps >= 50) this.element.style.color = '#00ff00'      // Verde
-      else if (fps >= 30) this.element.style.color = '#ffff00' // Amarelo
-      else this.element.style.color = '#ff4444'                // Vermelho
+      this.element.classList.remove('text-green-400', 'text-yellow-400', 'text-red-500')
+      if (fps >= 50) this.element.classList.add('text-green-400')
+      else if (fps >= 30) this.element.classList.add('text-yellow-400')
+      else this.element.classList.add('text-red-500')
 
       this.prevTime = currentTime
       this.frames = 0
@@ -69,8 +56,6 @@ export class PerformanceMonitor {
   }
 
   public dispose(): void {
-    if (this.element.parentNode) {
-      this.element.parentNode.removeChild(this.element)
-    }
+    this.element.remove()
   }
 }

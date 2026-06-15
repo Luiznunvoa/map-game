@@ -7,11 +7,11 @@ export class MainMenuUI {
   constructor(container: HTMLElement, onStart: () => void) {
     this.element = html`
       <div 
-        class="flex flex-col items-center justify-center min-w-[100vw] min-h-[100vh] bg-repeat" 
+        class="flex flex-col items-center justify-center min-w-screen min-h-screen bg-repeat" 
         style="background-image: url('${bg}');"
       >
         <h1 class="text-6xl font-bold tracking-wider mb-10 text-white drop-shadow-lg">
-          The Map Game
+          Map Game
         </h1>
         <button id="start-btn" class="px-10 py-4 text-xl font-semibold bg-indigo-600 hover:bg-indigo-500 hover:scale-105 active:scale-95 transition-all duration-200 rounded-xl shadow-lg hover:shadow-indigo-500/50">
           Start Game

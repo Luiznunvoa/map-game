@@ -1,15 +1,12 @@
+import { html } from '@/lib/utils/html'
+
 export class SelectionBox {
-  private element: HTMLDivElement
+  private element: HTMLElement
 
   constructor() {
-    this.element = document.createElement('div')
-    this.element.className = 'selection-box'
-    this.element.style.position = 'fixed'
-    this.element.style.border = '2px dashed #3b82f6'
-    this.element.style.backgroundColor = 'rgba(59, 130, 246, 0.2)'
-    this.element.style.pointerEvents = 'none'
-    this.element.style.zIndex = '9999'
-    this.element.style.display = 'none'
+    this.element = html`
+      <div class="fixed border-2 border-dashed border-blue-500 bg-blue-500/20 pointer-events-none z-[9999] hidden"></div>
+    `
     document.body.appendChild(this.element)
   }
 
