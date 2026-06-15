@@ -35,6 +35,20 @@ export class MapService {
   }
 
   /**
+   * Baixa a imagem BMP e faz o parse manualmente sem depender da Canvas API
+   * (que falha e joga DOMException para BMPs de 24 bits ou formato bottom-up).
+   */
+  public async fetchBmp(url: string) {
+    const response = await fetch(url)
+    if (!response.ok) {
+      throw new Error(`Failed to load bmp from ${url}`)
+    }
+    const arrayBuffer = await response.arrayBuffer()
+    const { parseBmp } = await import('@/lib/parsing-pipeline/BmpParser')
+    return await parseBmp(new Uint8Array(arrayBuffer), url)
+  }
+
+  /**
    * (Opcional) Helper para extrair RGBA array puro da imagem
    * caso seu engine necessite do RawBitmap do formato anterior.
    */

@@ -1,5 +1,6 @@
 import { Raycaster, Vector2 } from 'three'
 
+import { bg } from '@/assets'
 import { KeyboardControls } from '@/controls/keyboard-control'
 import { MouseControls } from '@/controls/mouse-controls'
 import { OrbitControl } from '@/controls/orbit-control'
@@ -49,7 +50,7 @@ export class MapView implements MapViewContext {
   }
 
   async load(): Promise<void> {
-    this.background = new StaticBackground(this.container, '/bg.png')
+    this.background = new StaticBackground(this.container, bg)
     this.entities.push(this.background)
 
     setupScene(this, this.onFrame)

@@ -67,27 +67,16 @@ export class MapParser {
       this.notify()
 
       const provincesUrl = rawData.provincesBitmapUrl || '/api/maps/current/provinces.bmp'
-      const imgData = await this.mapService.fetchRawImageData(provincesUrl)
+      const provincesBitmap = await this.mapService.fetchBmp(provincesUrl)
       if (this.aborted) return
-
-      // Converte RGBA (4 canais) do Canvas para RGB linear (3 canais) exigido pelo IdBuffer
-      const rgbData = new Uint8Array(imgData.width * imgData.height * 3)
-      for (let i = 0; i < imgData.width * imgData.height; i++) {
-        rgbData[i * 3 + 0] = imgData.data[i * 4 + 0]
-        rgbData[i * 3 + 1] = imgData.data[i * 4 + 1]
-        rgbData[i * 3 + 2] = imgData.data[i * 4 + 2]
-      }
-
-      const provincesBitmap = {
-        width: imgData.width,
-        height: imgData.height,
-        data: rgbData,
-      }
 
       const richData: ParsedMapData & { provincesBitmap: RawBitmap; idBufferResult: IdBufferWithStats } = {
         ...rawData,
         provincesBitmap,
-        idBufferResult: rawData.idBufferResult,
+        idBufferResult: {
+          ...rawData.idBufferResult,
+          idBuffer: new Uint16Array(rawData.idBufferResult.idBuffer),
+        },
       }
 
       this.progress = { value: 1.0, stage: 'Pronto!' }
