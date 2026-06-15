@@ -55,6 +55,9 @@ export class Game {
     if (event.type === 'START_GAME') {
       const mapView: IView = new MapView(this.container)
       await this.switchView(mapView)
+    } else if (event.type === 'BACK_TO_MENU') {
+      const menuView: IView = new MenuView(this.container)
+      await this.switchView(menuView)
     }
   }
 

@@ -20,8 +20,11 @@ import { setupControls } from './setup-controls'
 import { setupElements } from './setup-elements'
 import { handleFrame, setupMapEntity, setupScene } from './setup-map'
 import type { MapViewContext } from './types'
+import { BackButtonUI } from '@/ui/back-button'
+import type { ViewEventHandler } from '@/types/view'
 
 export class MapView implements MapViewContext {
+  public onEvent?: ViewEventHandler
   public container: HTMLElement
 
   public keyboard!: KeyboardControls
@@ -34,6 +37,7 @@ export class MapView implements MapViewContext {
   public monitor!: PerformanceMonitor 
   public textBox!: GenericTextBox
   public mapModeSelector!: GenericSelector<MapColorMode>
+  public backButton!: BackButtonUI
   
   public scene!: CustomScene
   public mapData!: RichMapData
@@ -83,6 +87,12 @@ export class MapView implements MapViewContext {
     setupControls(this, this.onClick)
     setupElements(this)
     setupMapEntity(this)
+    
+    this.backButton = new BackButtonUI(this.container, () => {
+      if (this.onEvent) {
+        this.onEvent({ type: 'BACK_TO_MENU' })
+      }
+    })
   }
 
   private onClick = (event: MouseEvent): void => {
@@ -110,6 +120,7 @@ export class MapView implements MapViewContext {
     this.monitor.dispose()
     this.textBox?.dispose()
     this.mapModeSelector?.dispose()
+    this.backButton?.dispose()
   }
 
   public setColorMode(viewName: MapColorMode): void {
