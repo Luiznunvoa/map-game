@@ -1,8 +1,8 @@
 import { BASE_URL } from '@/env'
-import type { ParsedMapData, CountryData, ProvinceData } from '@/types/data'
-import type { IRequestClient } from '@/types/network'
-import { parseBmp } from '@/lib/utils/bmp-parser'
 import { networkAdapter } from '@/lib/network'
+import { parseBmp } from '@/lib/utils/bmp-parser'
+import type { CountryData, ParsedMapData, ProvinceData } from '@/types/data'
+import type { IRequestClient } from '@/types/network'
 
 export class MapService {
   private http: IRequestClient

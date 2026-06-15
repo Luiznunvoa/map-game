@@ -1,17 +1,14 @@
 
-import type { RichMapData, WorldData } from '@/types/data'
 import { LoadingScreen } from '@/ui/loading'
 import { MapView } from '@/views/map'
-import { mapService } from "@/services/http/map-service"
+import { MenuView } from '@/views/menu'
 
-import type { IView } from '../types/view'
+import type { IView, ViewEvent } from '../types/view'
 
 export class Game {
   private activeView: IView | null = null
   private container: HTMLElement
   private loadingScreen: LoadingScreen
-  private worldData: WorldData | null = null
-  private mapData: RichMapData | null = null
 
   constructor(container: HTMLElement) {
     this.container = container
@@ -24,47 +21,10 @@ export class Game {
   public async start(): Promise<void> {
     this.loadingScreen.show()
     try {
-      // Busca o estado do jogo (contexto de países)
-      await this.loadGameState()
-
-      // A primeira view já começa sendo o mapa, recebendo o estado buscado pelo Game
-      if (!this.mapData) throw new Error("Failed to load map data")
-      const mapView: IView = new MapView(this.container, this.mapData, this.worldData)
-
-      await this.switchView(mapView)
+      const menuView: IView = new MenuView(this.container)
+      await this.switchView(menuView)
     } finally {
       await this.loadingScreen.hide()
-    }
-  }
-
-  /**
-   * Busca e salva o estado geral do jogo
-   */
-  private async loadGameState(): Promise<void> {
-    try {
-      // Carregando dados do jogo
-      const [countriesData, provincesData, rawMapData, provincesBitmap] = await Promise.all([
-        mapService.fetchCountries(),
-        mapService.fetchDefinitions(),
-        mapService.fetchParsedMapData(),
-        mapService.fetchBmp('/api/maps/current/provinces.bmp'),
-      ])
-      
-      this.worldData = {
-        countries: countriesData,
-        provinces: provincesData,
-      }
-
-      this.mapData = {
-        ...rawMapData,
-        provincesBitmap,
-        idBufferResult: {
-          ...rawMapData.idBufferResult,
-          idBuffer: new Uint16Array(rawMapData.idBufferResult.idBuffer),
-        },
-      }
-    } catch (e) {
-      console.warn('Failed to load map data in Game state', e)
     }
   }
 
@@ -81,12 +41,20 @@ export class Game {
     }
 
     this.activeView = view
+    this.activeView.onEvent = this.handleViewEvent.bind(this)
     
     try {
       await this.activeView.load()
       this.activeView.start()
     } finally {
       await this.loadingScreen.hide()
+    }
+  }
+
+  private async handleViewEvent(event: ViewEvent): Promise<void> {
+    if (event.type === 'START_GAME') {
+      const mapView: IView = new MapView(this.container)
+      await this.switchView(mapView)
     }
   }
 
