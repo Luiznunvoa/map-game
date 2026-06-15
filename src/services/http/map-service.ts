@@ -1,5 +1,7 @@
+import { BASE_URL } from '@/env'
 import type { ParsedMapData } from '@/types/data'
 import type { IRequestClient } from '@/types/network'
+import { parseBmp } from '@/lib/utils/bmp-parser'
 
 export class MapService {
   private http: IRequestClient
@@ -13,11 +15,14 @@ export class MapService {
    * Substitui todo o parsing-pipeline no cliente.
    */
   public async fetchParsedMapData(): Promise<ParsedMapData> {
-    const res = await this.http.request<void, ParsedMapData>({
-      method: 'GET',
-      url: '/api/maps/current',
-    })
-    return res.data
+    const res = await fetch(`${BASE_URL}/api/maps/current`)
+    if (!res.ok) {
+      throw new Error('Failed to fetch maps data')
+    }
+    const ds = new DecompressionStream('gzip')
+    const decompressedStream = res.body!.pipeThrough(ds)
+    const decompressedResponse = new Response(decompressedStream)
+    return await decompressedResponse.json()
   }
 
   /**
@@ -44,7 +49,6 @@ export class MapService {
       throw new Error(`Failed to load bmp from ${url}`)
     }
     const arrayBuffer = await response.arrayBuffer()
-    const { parseBmp } = await import('@/lib/parsing-pipeline/BmpParser')
     return await parseBmp(new Uint8Array(arrayBuffer), url)
   }
 
