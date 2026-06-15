@@ -120,3 +120,8 @@ export interface ParsedMapData {
   terrainBitmapUrl?: string;
   idBufferResult: IdBufferWithStats;
 }
+
+export interface RichMapData extends ParsedMapData {
+  provincesBitmap: RawBitmap;
+  idBufferResult: IdBufferWithStats;
+}

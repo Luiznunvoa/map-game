@@ -1,7 +1,8 @@
 
-import type { WorldData } from '@/types/data'
+import type { RichMapData, WorldData } from '@/types/data'
 import { LoadingScreen } from '@/ui/loading'
 import { MapView } from '@/views/map'
+import { mapService } from "@/services/http/map-service"
 
 import type { IView } from '../types/view'
 
@@ -10,6 +11,7 @@ export class Game {
   private container: HTMLElement
   private loadingScreen: LoadingScreen
   private worldData: WorldData | null = null
+  private mapData: RichMapData | null = null
 
   constructor(container: HTMLElement) {
     this.container = container
@@ -26,7 +28,8 @@ export class Game {
       await this.loadGameState()
 
       // A primeira view já começa sendo o mapa, recebendo o estado buscado pelo Game
-      const mapView: IView = new MapView(this.container, this.worldData)
+      if (!this.mapData) throw new Error("Failed to load map data")
+      const mapView: IView = new MapView(this.container, this.mapData, this.worldData)
 
       await this.switchView(mapView)
     } finally {
@@ -39,15 +42,26 @@ export class Game {
    */
   private async loadGameState(): Promise<void> {
     try {
-      const { mapService } = await import('@/services/http/map-service')
-      const [countriesData, provincesData] = await Promise.all([
+      // Carregando dados do jogo
+      const [countriesData, provincesData, rawMapData, provincesBitmap] = await Promise.all([
         mapService.fetchCountries(),
         mapService.fetchDefinitions(),
+        mapService.fetchParsedMapData(),
+        mapService.fetchBmp('/api/maps/current/provinces.bmp'),
       ])
       
       this.worldData = {
         countries: countriesData,
         provinces: provincesData,
+      }
+
+      this.mapData = {
+        ...rawMapData,
+        provincesBitmap,
+        idBufferResult: {
+          ...rawMapData.idBufferResult,
+          idBuffer: new Uint16Array(rawMapData.idBufferResult.idBuffer),
+        },
       }
     } catch (e) {
       console.warn('Failed to load map data in Game state', e)

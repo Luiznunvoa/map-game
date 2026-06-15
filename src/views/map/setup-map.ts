@@ -3,7 +3,6 @@ import { Vector3 } from 'three'
 import type { InputState } from '@/controls/orbit-control'
 import { Map3D } from '@/entities/globe'
 import { CustomScene, type FrameState } from '@/lib/scene'
-import { MapParser } from '@/services/map'
 
 import type { MapViewContext } from './types'
 
@@ -22,27 +21,18 @@ export function setupScene(ctx: MapViewContext, onFrame: (state: FrameState) => 
   })
 }
 
-export async function setupParser(ctx: MapViewContext): Promise<void> {
-  ctx.parser = new MapParser()
-  ctx.parser.subscribe(({ status, data }: any) => {
-    if (status === 'loading') return
-    
-    if (status === 'done' && data) {
-      ctx.map?.dispose()
-      ctx.map = new Map3D(data, {
-        radius: 1.0,
-        widthSegments: 128,
-        heightSegments: 64,
-        initialColorMode: ctx.colorMode,
-      })
-      
-      ctx.setColorMode(ctx.colorMode)
-      
-      ctx.scene.setEntities([ctx.map, ...ctx.entities])
-    }
+export function setupMapEntity(ctx: MapViewContext): void {
+  ctx.map?.dispose()
+  ctx.map = new Map3D(ctx.mapData, {
+    radius: 1.0,
+    widthSegments: 128,
+    heightSegments: 64,
+    initialColorMode: ctx.colorMode,
   })
-
-  await ctx.parser.fetchMap()
+  
+  ctx.setColorMode(ctx.colorMode)
+  
+  ctx.scene.setEntities([ctx.map, ...ctx.entities])
 }
 
 export function handleFrame(ctx: MapViewContext, state: FrameState): void {

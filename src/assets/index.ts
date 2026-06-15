@@ -1,4 +1,4 @@
-import bg from './images/bg.jpg'
+import bg from './images/bg.png'
 import doge from './images/doge.png'
 
 export { 

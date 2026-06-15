@@ -1,7 +1,8 @@
 import { BASE_URL } from '@/env'
-import type { ParsedMapData } from '@/types/data'
+import type { ParsedMapData, CountryData, ProvinceData } from '@/types/data'
 import type { IRequestClient } from '@/types/network'
 import { parseBmp } from '@/lib/utils/bmp-parser'
+import { networkAdapter } from '@/lib/network'
 
 export class MapService {
   private http: IRequestClient
@@ -72,8 +73,8 @@ export class MapService {
   /**
    * Retorna os dados dos países do jogo
    */
-  public async fetchCountries(): Promise<any> {
-    const res = await this.http.request<void, any>({
+  public async fetchCountries(): Promise<CountryData[]> {
+    const res = await this.http.request<void, CountryData[]>({
       method: 'GET',
       url: '/api/maps/current/countries.json',
     })
@@ -83,8 +84,8 @@ export class MapService {
   /**
    * Retorna as definições base de todas as províncias
    */
-  public async fetchDefinitions(): Promise<any> {
-    const res = await this.http.request<void, any>({
+  public async fetchDefinitions(): Promise<ProvinceData[]> {
+    const res = await this.http.request<void, ProvinceData[]>({
       method: 'GET',
       url: '/api/maps/current/definitions.json',
     })
@@ -92,5 +93,4 @@ export class MapService {
   }
 }
 
-import { networkAdapter } from '@/lib/network'
 export const mapService = new MapService(networkAdapter.http)

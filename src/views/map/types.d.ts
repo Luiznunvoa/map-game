@@ -6,8 +6,7 @@ import { OrbitControl } from '@/controls/orbit-control'
 import { StaticBackground } from '@/entities/background'
 import { Map3D } from '@/entities/globe'
 import { CustomScene } from '@/lib/scene'
-import { MapParser } from '@/services/map'
-import type { NormalizedColor,WorldData } from '@/types/data'
+import type { NormalizedColor, RichMapData, WorldData } from '@/types/data'
 import type { Entity } from '@/types/entity'
 import type { MapColorMode } from '@/types/globe'
 import type { IView } from '@/types/view'
@@ -25,7 +24,7 @@ export interface MapViewContext extends IView {
   background: StaticBackground | null
   entities: Entity[]
   scene: CustomScene
-  parser: MapParser
+  mapData: RichMapData
   colorMode: MapColorMode
   worldData: WorldData | null
   textBox: GenericTextBox

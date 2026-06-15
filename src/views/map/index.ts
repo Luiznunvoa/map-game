@@ -7,8 +7,7 @@ import { OrbitControl } from '@/controls/orbit-control'
 import { StaticBackground } from '@/entities/background'
 import { Map3D } from '@/entities/globe'
 import { CustomScene, type FrameState } from '@/lib/scene'
-import type { MapParser } from '@/services/map'
-import type { NormalizedColor,WorldData } from '@/types/data'
+import type { NormalizedColor, RichMapData, WorldData } from '@/types/data'
 import type { Entity } from '@/types/entity'
 import type { MapColorMode } from '@/types/globe'
 import { PerformanceMonitor } from '@/ui/fps-counter'
@@ -18,7 +17,7 @@ import { GenericTextBox } from '@/ui/text-box'
 import { handleClicks } from './handle-clicks'
 import { setupControls } from './setup-controls'
 import { setupElements } from './setup-elements'
-import { handleFrame, setupParser, setupScene } from './setup-map'
+import { handleFrame, setupMapEntity, setupScene } from './setup-map'
 import type { MapViewContext } from './types'
 
 export class MapView implements MapViewContext {
@@ -36,15 +35,16 @@ export class MapView implements MapViewContext {
   public mapModeSelector!: GenericSelector<MapColorMode>
   
   public scene!: CustomScene
-  public parser!: MapParser
+  public mapData: RichMapData
   public colorMode: MapColorMode = 'political'
   public worldData: WorldData | null = null
 
   public raycaster = new Raycaster()
   public mouse = new Vector2()
 
-  constructor(container: HTMLElement, worldData: WorldData | null = null, colorMode: MapColorMode = 'political') {
+  constructor(container: HTMLElement, mapData: RichMapData, worldData: WorldData | null = null, colorMode: MapColorMode = 'political') {
     this.container = container
+    this.mapData = mapData
     this.worldData = worldData
     this.colorMode = colorMode
   }
@@ -56,7 +56,7 @@ export class MapView implements MapViewContext {
     setupScene(this, this.onFrame)
     setupControls(this, this.onClick)
     setupElements(this)
-    await setupParser(this)
+    setupMapEntity(this)
   }
 
   private onClick = (event: MouseEvent): void => {
@@ -79,7 +79,6 @@ export class MapView implements MapViewContext {
     this.scene.dispose()
     this.keyboard.dispose()
     this.mouseControls.dispose()
-    this.parser.dispose()
     this.map?.dispose()
     this.background?.dispose()
     this.monitor.dispose()
