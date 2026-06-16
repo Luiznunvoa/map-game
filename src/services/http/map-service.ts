@@ -1,7 +1,6 @@
 import { BASE_URL } from '@/env'
 import { networkAdapter } from '@/lib/network'
-import { parseBmp } from '@/lib/utils/bmp-parser'
-import type { CountryData, ParsedMapData, ProvinceData } from '@/types/data'
+import type { CountryData, ParsedMapData, ProvinceData, RawBitmap } from '@/types/data'
 import type { IRequestClient } from '@/types/network'
 
 export class MapService {
@@ -62,13 +61,33 @@ export class MapService {
    * Baixa a imagem BMP e faz o parse manualmente sem depender da Canvas API
    * (que falha e joga DOMException para BMPs de 24 bits ou formato bottom-up).
    */
-  public fetchBmp(url: string) {
+  public fetchBmp(url: string): Promise<RawBitmap> {
     if (!this.bmpCache[url]) {
       this.bmpCache[url] = (async () => {
         const response = await fetch(url)
         if (!response.ok) throw new Error(`Failed to load bmp from ${url}`)
         const arrayBuffer = await response.arrayBuffer()
-        return await parseBmp(new Uint8Array(arrayBuffer), url)
+        
+        return new Promise<RawBitmap>((resolve, reject) => {
+          const worker = new Worker(new URL('../../lib/utils/bmp-parser.worker', import.meta.url), { type: 'module' })
+          
+          worker.onmessage = (e) => {
+            if (e.data.success) {
+              resolve(e.data.result)
+            } else {
+              reject(new Error(e.data.error))
+            }
+            worker.terminate()
+          }
+          
+          worker.onerror = (e) => {
+            reject(new Error(e.message))
+            worker.terminate()
+          }
+          
+          const bytes = new Uint8Array(arrayBuffer)
+          worker.postMessage({ bytes, filename: url }, { transfer: [bytes.buffer] })
+        })
       })().catch(e => {
         delete this.bmpCache[url]
         throw e
@@ -83,12 +102,10 @@ export class MapService {
    */
   public async fetchRawImageData(url: string): Promise<ImageData> {
     const imgBitmap = await this.fetchMapImage(url)
-    const canvas = document.createElement('canvas')
-    canvas.width = imgBitmap.width
-    canvas.height = imgBitmap.height
+    const canvas = new OffscreenCanvas(imgBitmap.width, imgBitmap.height)
     
-    const ctx = canvas.getContext('2d')
-    if (!ctx) throw new Error('Canvas 2D not supported')
+    const ctx = canvas.getContext('2d', { willReadFrequently: true }) as OffscreenCanvasRenderingContext2D
+    if (!ctx) throw new Error('OffscreenCanvas 2D not supported')
     
     ctx.drawImage(imgBitmap, 0, 0)
     return ctx.getImageData(0, 0, canvas.width, canvas.height)
