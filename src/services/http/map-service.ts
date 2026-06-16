@@ -1,7 +1,7 @@
 import { BASE_URL } from '@/env'
 import { networkAdapter } from '@/lib/network'
 import { unpack } from 'msgpackr'
-import type { CountryData, ParsedMapData, ProvinceData, RawBitmap } from '@/types/data'
+import type { CountryData, ParsedMapData, ProvinceData } from '@/types/data'
 import type { IRequestClient } from '@/types/network'
 
 export class MapService {
@@ -11,7 +11,6 @@ export class MapService {
   private mapDataPromise: Promise<ParsedMapData> | null = null
   private countriesPromise: Promise<CountryData[]> | null = null
   private definitionsPromise: Promise<ProvinceData[]> | null = null
-  private bmpCache: Record<string, Promise<any>> = {}
   private imageCache: Record<string, Promise<ImageBitmap>> = {}
 
   constructor(http: IRequestClient) {
@@ -61,44 +60,6 @@ export class MapService {
     return this.imageCache[url]
   }
 
-  /**
-   * Baixa a imagem BMP e faz o parse manualmente sem depender da Canvas API
-   * (que falha e joga DOMException para BMPs de 24 bits ou formato bottom-up).
-   */
-  public fetchBmp(url: string): Promise<RawBitmap> {
-    if (!this.bmpCache[url]) {
-      this.bmpCache[url] = (async () => {
-        const response = await fetch(url)
-        if (!response.ok) throw new Error(`Failed to load bmp from ${url}`)
-        const arrayBuffer = await response.arrayBuffer()
-        
-        return new Promise<RawBitmap>((resolve, reject) => {
-          const worker = new Worker(new URL('../../lib/utils/bmp-parser.worker', import.meta.url), { type: 'module' })
-          
-          worker.onmessage = (e) => {
-            if (e.data.success) {
-              resolve(e.data.result)
-            } else {
-              reject(new Error(e.data.error))
-            }
-            worker.terminate()
-          }
-          
-          worker.onerror = (e) => {
-            reject(new Error(e.message))
-            worker.terminate()
-          }
-          
-          const bytes = new Uint8Array(arrayBuffer)
-          worker.postMessage({ bytes, filename: url }, { transfer: [bytes.buffer] })
-        })
-      })().catch(e => {
-        delete this.bmpCache[url]
-        throw e
-      })
-    }
-    return this.bmpCache[url]
-  }
 
   /**
    * (Opcional) Helper para extrair RGBA array puro da imagem
@@ -155,7 +116,6 @@ export class MapService {
     this.mapDataPromise = null
     this.countriesPromise = null
     this.definitionsPromise = null
-    this.bmpCache = {}
     this.imageCache = {}
   }
 }

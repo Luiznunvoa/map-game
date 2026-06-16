@@ -58,7 +58,7 @@ export class MapView implements MapViewContext {
         mapService.fetchCountries(),
         mapService.fetchDefinitions(),
         mapService.fetchParsedMapData(),
-        mapService.fetchBmp('/api/maps/current/provinces.bmp'),
+        mapService.fetchMapImage('/api/maps/current/provinces.png'),
       ])
       
       this.worldData = {

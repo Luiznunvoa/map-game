@@ -43,11 +43,6 @@ export interface WorldData {
 }
 
 // Static Map Definitions (From backend parsing)
-export interface RawBitmap {
-  width: number;
-  height: number;
-  data: Uint8Array;
-}
 
 export interface ProvinceDefinition {
   id: ProvinceId;
@@ -122,6 +117,6 @@ export interface ParsedMapData {
 }
 
 export interface RichMapData extends ParsedMapData {
-  provincesBitmap: RawBitmap;
+  provincesBitmap: ImageBitmap;
   idBufferResult: IdBufferWithStats;
 }

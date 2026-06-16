@@ -1,4 +1,4 @@
-import type { IdBufferWithStats,ParsedMapData, RawBitmap } from './data'
+import type { IdBufferWithStats,ParsedMapData } from './data'
 
 export type MapColorMode = 'political' | 'province' | 'terrain' | 'continent' | 'region'
 
@@ -11,7 +11,7 @@ export type GlobeMapInput = Pick<
   | 'continents'
   | 'regions'
 > & {
-  provincesBitmap: RawBitmap;
+  provincesBitmap: ImageBitmap;
   idBufferResult: IdBufferWithStats;
 }
 
