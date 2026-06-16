@@ -71,7 +71,7 @@ export class MapView implements MapViewContext {
         provincesBitmap,
         idBufferResult: {
           ...rawMapData.idBufferResult,
-          idBuffer: new Uint16Array(rawMapData.idBufferResult.idBuffer),
+          idBuffer: new Uint16Array(rawMapData.idBufferResult.idBuffer.slice().buffer),
         },
       }
     } catch (e) {
