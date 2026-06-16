@@ -24,6 +24,7 @@
   "dependencies": {
     "@types/three": "^0.184.1",
     "axios": "^1.18.0",
+    "msgpackr": "^2.0.4",
     "three": "^0.184.0"
   }
 }

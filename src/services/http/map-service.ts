@@ -1,5 +1,6 @@
 import { BASE_URL } from '@/env'
 import { networkAdapter } from '@/lib/network'
+import { unpack } from 'msgpackr'
 import type { CountryData, ParsedMapData, ProvinceData, RawBitmap } from '@/types/data'
 import type { IRequestClient } from '@/types/network'
 
@@ -29,7 +30,10 @@ export class MapService {
         const ds = new DecompressionStream('gzip')
         const decompressedStream = res.body!.pipeThrough(ds)
         const decompressedResponse = new Response(decompressedStream)
-        return await decompressedResponse.json()
+        
+        // Lê o stream descompactado como buffer binário e decodifica o MessagePack
+        const buffer = await decompressedResponse.arrayBuffer()
+        return unpack(new Uint8Array(buffer)) as ParsedMapData
       })().catch(e => {
         this.mapDataPromise = null // Invalida o cache em caso de erro
         throw e
