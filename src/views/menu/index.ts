@@ -16,7 +16,12 @@ export class MenuView implements IView {
 
   async load(): Promise<void> {
     // Check if we are already logged in via token
-    // Could optionally auto-login here if a token exists
+  }
+
+  private startGame(): void {
+    if (this.onEvent) {
+      this.onEvent({ type: 'START_GAME' })
+    }
   }
 
   start(): void {
@@ -31,19 +36,16 @@ export class MenuView implements IView {
           localStorage.setItem('user_email', response.user.email)
         }
 
-        // Mostra o botao de start game
-        this.menuUI?.showStartGame()
+        this.startGame()
+
       },
       () => {
-        if (this.onEvent) {
-          this.onEvent({ type: 'START_GAME' })
-        }
+        this.startGame()
       }
     )
 
-    // Se ja estiver logado, podemos forcar a exibicao do Start Game direto
     if (localStorage.getItem('auth_token')) {
-      this.menuUI?.showStartGame()
+      this.startGame()
     }
   }
 

@@ -1,7 +1,7 @@
 export type ViewEvent = 
   | { type: 'START_GAME' }
   | { type: 'BACK_TO_MENU' }
-  // You can add more events here in the future, e.g.:
+  | { type: 'ENTER_ROOM'; data: number }
   // | { type: 'SELECT_PROVINCE'; payload: { id: number } }
 
 export type ViewEventHandler = (event: ViewEvent) => void;

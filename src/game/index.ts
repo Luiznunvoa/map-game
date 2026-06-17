@@ -2,6 +2,7 @@
 import { LoadingScreen } from '@/ui/loading'
 import { MapView } from '@/views/map'
 import { MenuView } from '@/views/menu'
+import { RoomsView } from '@/views/rooms'
 
 import type { IView, ViewEvent } from '../types/view'
 
@@ -53,6 +54,11 @@ export class Game {
 
   private async handleViewEvent(event: ViewEvent): Promise<void> {
     if (event.type === 'START_GAME') {
+      const roomsView: IView = new RoomsView(this.container)
+      await this.switchView(roomsView)
+    } else if (event.type === 'ENTER_ROOM') {
+      // Por enquanto, apenas inicia a view do mapa
+      // TODO: Usar event.data (roomId) no MapView
       const mapView: IView = new MapView(this.container)
       await this.switchView(mapView)
     } else if (event.type === 'BACK_TO_MENU') {

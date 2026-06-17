@@ -29,7 +29,12 @@ implements IWebSocketClient<TEvents>
 
     return new Promise((resolve, reject) => {
       let settled = false
-      const socket = new WebSocket(endpoint)
+      const url = new URL(endpoint)
+      const token = localStorage.getItem('auth_token')
+      if (token) {
+        url.searchParams.set('token', token)
+      }
+      const socket = new WebSocket(url.toString())
 
       socket.onopen = () => {
         settled = true

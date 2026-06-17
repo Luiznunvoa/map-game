@@ -50,6 +50,8 @@ type AppWebSocketEvents = {
   'user:state': PlayerState
   'province:state': ProvinceState
   'country:state': CountryState
+  'subscribe_rooms': { page: number; per_page: number }
+  'rooms_update': { page: number; per_page: number; total_items: number; total_pages: number; rooms: any[] }
 }
 
 export interface IHttpStateService<TState, TId = number | string> {
