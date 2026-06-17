@@ -3,10 +3,19 @@ import { html } from '@/lib/utils/html'
 
 export class RoomsUI {
   private element: HTMLElement
-  private onRoomClick: (roomId: number) => void
+  private onRoomClick: (roomId: string) => void
+  private onLeave: () => void
+  private onRefresh: () => void
 
-  constructor(container: HTMLElement, onRoomClick: (roomId: number) => void) {
+  constructor(
+    container: HTMLElement,
+    onRoomClick: (roomId: string) => void,
+    onLeave: () => void,
+    onRefresh: () => void
+  ) {
     this.onRoomClick = onRoomClick
+    this.onLeave = onLeave
+    this.onRefresh = onRefresh
 
     this.element = html`
       <div 
@@ -20,9 +29,14 @@ export class RoomsUI {
         <div class="bg-gray-900/80 p-8 rounded-2xl shadow-2xl border border-gray-700 w-[800px] max-w-[90vw] backdrop-blur-xl">
           <div class="flex justify-between items-center mb-6">
             <h2 class="text-2xl font-semibold text-gray-200">Available Rooms</h2>
-            <button id="refresh-btn" class="px-4 py-2 bg-indigo-600 text-white rounded-lg transition-colors text-sm font-medium">
-              Refresh
-            </button>
+            <div class="flex gap-3">
+              <button id="refresh-btn" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-colors text-sm font-medium">
+                Refresh
+              </button>
+              <button id="leave-btn" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors text-sm font-medium shadow-md">
+                Sair
+              </button>
+            </div>
           </div>
           
           <div id="rooms-grid" class="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar">
@@ -36,9 +50,27 @@ export class RoomsUI {
     `
     
     container.appendChild(this.element)
+
+    const leaveBtn = this.element.querySelector('#leave-btn') as HTMLButtonElement
+    if (leaveBtn) {
+      leaveBtn.onclick = () => this.onLeave()
+    }
+
+    const refreshBtn = this.element.querySelector('#refresh-btn') as HTMLButtonElement
+    if (refreshBtn) {
+      refreshBtn.onclick = () => {
+        refreshBtn.innerHTML = '<div class="animate-spin rounded-full h-4 w-4 border-b-2 border-white inline-block"></div>'
+        this.onRefresh()
+      }
+    }
   }
 
   public updateList(rooms: any[]): void {
+    const refreshBtn = this.element.querySelector('#refresh-btn') as HTMLButtonElement
+    if (refreshBtn) {
+      refreshBtn.innerHTML = 'Refresh'
+    }
+
     const grid = this.element.querySelector('#rooms-grid') as HTMLDivElement
     grid.innerHTML = ''
 
@@ -56,17 +88,25 @@ export class RoomsUI {
       const card = html`
         <div class="bg-gray-800 border border-gray-600 p-5 rounded-xl cursor-pointer transition-all flex flex-col gap-2">
           <div class="flex justify-between items-center">
-            <span class="text-lg font-bold text-indigo-400">Room #${room.room_id}</span>
+            <div class="flex flex-col">
+              <span class="text-lg font-bold text-indigo-400">${room.name || `Room #${room.room_id.substring(0, 8)}`}</span>
+            </div>
             <span class="px-2 py-1 bg-green-900/50 text-green-400 text-xs rounded border border-green-700">
               ${room.status}
             </span>
           </div>
           <div class="flex justify-between text-sm text-gray-400 mt-2">
-            <span>Players: <strong class="text-white">${room.player_count}</strong></span>
+            <span>Players: <strong class="text-white">${room.player_count}/10</strong></span>
             <span>Speed: <strong class="text-white">${room.speed}x</strong></span>
           </div>
-          <div class="text-xs text-gray-500 mt-1">
-            Created: ${new Date(room.created_at).toLocaleTimeString()}
+
+          <div class="flex flex-col">
+            <div class="text-xs text-gray-500 mt-1">
+              Created: ${new Date(room.created_at).toLocaleDateString()} | ${new Date(room.created_at).toLocaleTimeString()}
+            </div>
+            <div class="text-xs text-gray-500 mt-1">
+              Id: ${room.room_id}
+            </div>
           </div>
         </div>
       `

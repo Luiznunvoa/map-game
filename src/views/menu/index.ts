@@ -2,6 +2,7 @@ import { MainMenuUI } from '@/ui/main-menu'
 import type { IView, ViewEventHandler } from '@/types/view'
 import { AuthService } from '@/services/http/auth-service'
 import { networkAdapter } from '@/lib/network'
+import { setCookie, getCookie } from '@/lib/utils/cookies'
 
 export class MenuView implements IView {
   public onEvent?: ViewEventHandler
@@ -30,10 +31,9 @@ export class MenuView implements IView {
       async (email: string, pass: string) => {
         const response = await this.authService.login({ email, password: pass })
         
-        // Simplesmente guardando o token por enquanto
-        localStorage.setItem('auth_token', response.token)
+        setCookie('auth_token', response.token)
         if (response.user) {
-          localStorage.setItem('user_email', response.user.email)
+          setCookie('user_email', response.user.email)
         }
 
         this.startGame()
@@ -44,7 +44,7 @@ export class MenuView implements IView {
       }
     )
 
-    if (localStorage.getItem('auth_token')) {
+    if (getCookie('auth_token')) {
       this.startGame()
     }
   }

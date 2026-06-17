@@ -1,9 +1,10 @@
 import type { AxiosInstance, InternalAxiosRequestConfig } from 'axios'
+import { getCookie, removeCookie } from '@/lib/utils/cookies'
 
 export function setupInterceptors(instance: AxiosInstance): void {
   instance.interceptors.request.use(
     (config: InternalAxiosRequestConfig) => {
-      const token = localStorage.getItem('auth_token')
+      const token = getCookie('auth_token')
       
       if (token && config.headers) {
         config.headers.Authorization = `Bearer ${token}`
@@ -23,8 +24,8 @@ export function setupInterceptors(instance: AxiosInstance): void {
     (error) => {
       if (error.response && error.response.status === 401) {
         // Token inválido ou expirado
-        localStorage.removeItem('auth_token')
-        localStorage.removeItem('user_email')
+        removeCookie('auth_token')
+        removeCookie('user_email')
         // alert("Sua sessão expirou!") 
         // window.location.reload() // Poderia forçar refresh para ir pro menu
       }

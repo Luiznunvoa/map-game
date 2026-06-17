@@ -1,7 +1,7 @@
 export type ViewEvent = 
   | { type: 'START_GAME' }
   | { type: 'BACK_TO_MENU' }
-  | { type: 'ENTER_ROOM'; data: number }
+  | { type: 'ENTER_ROOM'; data: string }
   // | { type: 'SELECT_PROVINCE'; payload: { id: number } }
 
 export type ViewEventHandler = (event: ViewEvent) => void;

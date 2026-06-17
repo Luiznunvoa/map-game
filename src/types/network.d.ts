@@ -33,8 +33,11 @@ export interface IWebSocketClient<TEvents extends Record<string, unknown> = Reco
   on<K extends keyof TEvents>(event: K, handler: WebSocketMessageHandler<TEvents[K]>): void;
   off<K extends keyof TEvents>(event: K, handler: WebSocketMessageHandler<TEvents[K]>): void;
   onConnect(handler: WebSocketConnectionHandler): void;
+  offConnect(handler: WebSocketConnectionHandler): void;
   onDisconnect(handler: WebSocketConnectionHandler): void;
+  offDisconnect(handler: WebSocketConnectionHandler): void;
   onError(handler: WebSocketErrorHandler): void;
+  offError(handler: WebSocketErrorHandler): void;
 }
 
 export interface INetworkAdapter<
@@ -51,6 +54,7 @@ type AppWebSocketEvents = {
   'province:state': ProvinceState
   'country:state': CountryState
   'subscribe_rooms': { page: number; per_page: number }
+  'fetch_rooms': { page: number; per_page: number }
   'rooms_update': { page: number; per_page: number; total_items: number; total_pages: number; rooms: any[] }
 }
 

@@ -30,10 +30,7 @@ implements IWebSocketClient<TEvents>
     return new Promise((resolve, reject) => {
       let settled = false
       const url = new URL(endpoint)
-      const token = localStorage.getItem('auth_token')
-      if (token) {
-        url.searchParams.set('token', token)
-      }
+      
       const socket = new WebSocket(url.toString())
 
       socket.onopen = () => {
@@ -91,8 +88,13 @@ implements IWebSocketClient<TEvents>
   }
 
   onConnect(handler: WebSocketConnectionHandler): void    { this.connectHandlers.add(handler) }
+  offConnect(handler: WebSocketConnectionHandler): void   { this.connectHandlers.delete(handler) }
+
   onDisconnect(handler: WebSocketConnectionHandler): void { this.disconnectHandlers.add(handler) }
+  offDisconnect(handler: WebSocketConnectionHandler): void { this.disconnectHandlers.delete(handler) }
+
   onError(handler: WebSocketErrorHandler): void           { this.errorHandlers.add(handler) }
+  offError(handler: WebSocketErrorHandler): void          { this.errorHandlers.delete(handler) }
 
   // handleMessage continua com unknown — JSON.parse não tem como saber o tipo
   private handleMessage(raw: unknown): void {
