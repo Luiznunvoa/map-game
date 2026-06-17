@@ -11,7 +11,8 @@ export class RoomsUI {
     container: HTMLElement,
     onRoomClick: (roomId: string) => void,
     onLeave: () => void,
-    onRefresh: () => void
+    onRefresh: () => void,
+    onCreateRoomSubmit: (data: any) => void
   ) {
     this.onRoomClick = onRoomClick
     this.onLeave = onLeave
@@ -30,6 +31,9 @@ export class RoomsUI {
           <div class="flex justify-between items-center mb-6">
             <h2 class="text-2xl font-semibold text-gray-200">Available Rooms</h2>
             <div class="flex gap-3">
+              <button id="create-btn" class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors text-sm font-medium shadow-md">
+                Criar Sala
+              </button>
               <button id="refresh-btn" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-colors text-sm font-medium">
                 Refresh
               </button>
@@ -46,6 +50,44 @@ export class RoomsUI {
             </div>
           </div>
         </div>
+      <!-- Create Room Modal -->
+      <div id="create-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden flex items-center justify-center z-50">
+        <div class="bg-gray-800 p-6 rounded-xl border border-gray-700 w-[400px] shadow-2xl">
+          <h3 class="text-xl font-bold text-white mb-4">Nova Sala</h3>
+          <form id="create-form" class="flex flex-col gap-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-400 mb-1">Nome</label>
+              <input type="text" name="name" class="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-white outline-none focus:border-indigo-500" required>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-400 mb-1">Visibilidade</label>
+              <select name="visibility" class="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-white outline-none focus:border-indigo-500">
+                <option value="PUBLIC">Público</option>
+                <option value="PRIVATE">Privado</option>
+                <option value="ONLY FRIENDS">Apenas Amigos</option>
+              </select>
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label class="block text-sm font-medium text-gray-400 mb-1">Velocidade</label>
+                <input type="number" name="speed" value="1" min="1" class="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-white outline-none focus:border-indigo-500" required>
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-400 mb-1">Máx Jogadores</label>
+                <input type="number" name="max_players" value="10" min="2" max="100" class="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-white outline-none focus:border-indigo-500" required>
+              </div>
+            </div>
+            <div class="flex justify-end gap-3 mt-4">
+              <button type="button" id="cancel-create-btn" class="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors text-sm font-medium">
+                Cancelar
+              </button>
+              <button type="submit" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-colors text-sm font-medium shadow-md">
+                Criar
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
       </div>
     `
     
@@ -61,6 +103,41 @@ export class RoomsUI {
       refreshBtn.onclick = () => {
         refreshBtn.innerHTML = '<div class="animate-spin rounded-full h-4 w-4 border-b-2 border-white inline-block"></div>'
         this.onRefresh()
+      }
+    }
+
+    const createBtn = this.element.querySelector('#create-btn') as HTMLButtonElement
+    const createModal = this.element.querySelector('#create-modal') as HTMLDivElement
+    const cancelCreateBtn = this.element.querySelector('#cancel-create-btn') as HTMLButtonElement
+    const createForm = this.element.querySelector('#create-form') as HTMLFormElement
+
+    if (createBtn && createModal) {
+      createBtn.onclick = () => {
+        createModal.classList.remove('hidden')
+      }
+    }
+
+    if (cancelCreateBtn && createModal) {
+      cancelCreateBtn.onclick = () => {
+        createModal.classList.add('hidden')
+      }
+    }
+
+    if (createForm && createModal) {
+      createForm.onsubmit = (e) => {
+        e.preventDefault()
+        const formData = new FormData(createForm)
+        const data = {
+          name: formData.get('name') as string,
+          visibility: formData.get('visibility') as string,
+          map_id: 1,
+          speed: parseInt(formData.get('speed') as string, 10),
+          save_size_limit: 1048576,
+          max_players: parseInt(formData.get('max_players') as string, 10),
+        }
+        onCreateRoomSubmit(data)
+        createModal.classList.add('hidden')
+        createForm.reset()
       }
     }
   }
@@ -96,7 +173,7 @@ export class RoomsUI {
             </span>
           </div>
           <div class="flex justify-between text-sm text-gray-400 mt-2">
-            <span>Players: <strong class="text-white">${room.player_count}/10</strong></span>
+            <span>Players: <strong class="text-white">${room.player_count}/${room.max_players || 10}</strong></span>
             <span>Speed: <strong class="text-white">${room.speed}x</strong></span>
           </div>
 

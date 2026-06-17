@@ -4,6 +4,8 @@ import type { IView, ViewEventHandler } from '@/types/view'
 
 import { BASE_URL } from '@/env'
 import { AuthService } from '@/services/http/auth-service'
+import { RoomService } from '@/services/http/room-service'
+import type { CreateRoomRequest } from '@/types/room'
 
 import { removeCookie } from '@/lib/utils/cookies'
 
@@ -12,12 +14,14 @@ export class RoomsView implements IView {
   private container: HTMLElement
   private roomsUI: RoomsUI | null = null
   private authService: AuthService
+  private roomService: RoomService
   private onWsConnect: () => void = () => {}
   private onRoomsUpdate: (data: any) => void = () => {}
 
   constructor(container: HTMLElement) {
     this.container = container
     this.authService = new AuthService(networkAdapter.http)
+    this.roomService = new RoomService(networkAdapter.http)
   }
 
   async load(): Promise<void> {
@@ -43,6 +47,17 @@ export class RoomsView implements IView {
       },
       () => {
         networkAdapter.ws.send('fetch_rooms', { page: 1, per_page: 20 })
+      },
+      async (data: CreateRoomRequest) => {
+        try {
+          const res = await this.roomService.createRoom(data)
+          if (this.onEvent) {
+            this.onEvent({ type: 'ENTER_ROOM', data: res.room_id })
+          }
+        } catch (err) {
+          console.error('Failed to create room:', err)
+          alert('Falha ao criar sala. Verifique o console.')
+        }
       }
     )
   }
