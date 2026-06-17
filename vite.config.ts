@@ -14,4 +14,17 @@ export default defineConfig({
       },
     },
   },
+  build: {
+    chunkSizeWarningLimit: 600, // Aumenta o limite para não avisar por causa do three.js
+    rollupOptions: {
+      output: {
+        manualChunks: (id) => {
+          if (id.includes('node_modules')) {
+            if (id.includes('three')) return 'three'
+            return 'vendor'
+          }
+        }
+      }
+    }
+  }
 })

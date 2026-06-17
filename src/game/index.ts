@@ -1,4 +1,5 @@
 
+import { Router } from '@/lib/router'
 import { LoadingScreen } from '@/ui/loading'
 import { MapView } from '@/views/map'
 import { MenuView } from '@/views/menu'
@@ -10,22 +11,40 @@ export class Game {
   private activeView: IView | null = null
   private container: HTMLElement
   private loadingScreen: LoadingScreen
+  private router: Router
 
   constructor(container: HTMLElement) {
     this.container = container
     this.loadingScreen = new LoadingScreen(this.container)
+    this.router = new Router()
+    this.setupRoutes()
+  }
+
+  private setupRoutes() {
+    this.router.add('/lobby', async () => {
+      await this.switchView(new RoomsView(this.container))
+    })
+
+    this.router.add('/room/:id', async (/* params */) => {
+      // O ID está disponível em params.id, ex: params.id
+      // TODO: Passar o roomId para o MapView quando ele suportar
+      await this.switchView(new MapView(this.container))
+    })
+
+    this.router.setFallback(async () => {
+      await this.switchView(new MenuView(this.container))
+    })
   }
 
   /**
-   * Inicia o ciclo de vida do jogo e carrega a tela inicial (Mapa)
+   * Inicia o ciclo de vida do jogo e resolve a rota inicial
    */
   public async start(): Promise<void> {
     this.loadingScreen.show()
     try {
-      const menuView: IView = new MenuView(this.container)
-      await this.switchView(menuView)
+      this.router.resolve(window.location.pathname, false)
     } finally {
-      await this.loadingScreen.hide()
+      this.loadingScreen.hide()
     }
   }
 
@@ -54,16 +73,11 @@ export class Game {
 
   private async handleViewEvent(event: ViewEvent): Promise<void> {
     if (event.type === 'START_GAME') {
-      const roomsView: IView = new RoomsView(this.container)
-      await this.switchView(roomsView)
+      this.router.navigate('/lobby')
     } else if (event.type === 'ENTER_ROOM') {
-      // Por enquanto, apenas inicia a view do mapa
-      // TODO: Usar event.data (roomId) no MapView
-      const mapView: IView = new MapView(this.container)
-      await this.switchView(mapView)
+      this.router.navigate(`/room/${event.data}`)
     } else if (event.type === 'BACK_TO_MENU') {
-      const menuView: IView = new MenuView(this.container)
-      await this.switchView(menuView)
+      this.router.navigate('/')
     }
   }
 
