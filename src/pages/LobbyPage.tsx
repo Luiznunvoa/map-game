@@ -4,7 +4,7 @@ import { bg } from '@/assets';
 import { networkAdapter } from '@/lib/network';
 import { RoomService } from '@/services/http/room-service';
 import type { CreateRoomRequest } from '@/types/room';
-
+import { BASE_URL } from '@/env';
 import { AuthService } from '@/services/http/auth-service';
 import { removeCookie } from '@/lib/utils/cookies';
 
@@ -33,7 +33,7 @@ export function LobbyPage() {
 
   onMount(() => {
     // Inicia conexão WS se não estiver ativa (RoomsView logic)
-    const wsUrl = import.meta.env.VITE_BASE_URL?.replace(/^http/, 'ws') + '/ws/rooms' || 'ws://localhost:3000/ws/rooms';
+    const wsUrl = BASE_URL ? BASE_URL.replace(/^http/, 'ws') + '/ws/rooms' : 'ws://localhost:3000/ws/rooms';
     
     networkAdapter.ws.onConnect(() => {
       networkAdapter.ws.send('subscribe_rooms', { page: 1, per_page: 20 });

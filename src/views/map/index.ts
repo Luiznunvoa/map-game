@@ -7,7 +7,7 @@ import { OrbitControl } from '@/controls/orbit-control'
 import { StaticBackground } from '@/entities/background'
 import { Map3D } from '@/entities/globe'
 import { CustomScene, type FrameState } from '@/lib/scene'
-import { mapService } from '@/services/http/map-service'
+
 import type { NormalizedColor, RichMapData, WorldData } from '@/types/data'
 import type { Entity } from '@/types/entity'
 import type { MapColorMode } from '@/types/globe'
@@ -47,38 +47,11 @@ export class MapView implements MapViewContext {
   public raycaster = new Raycaster()
   public mouse = new Vector2()
 
-  constructor(container: HTMLElement, colorMode: MapColorMode = 'political') {
+  constructor(container: HTMLElement, worldData: WorldData, mapData: RichMapData, colorMode: MapColorMode = 'political') {
     this.container = container
     this.colorMode = colorMode
-  }
-
-  async load(): Promise<void> {
-    try {
-      const [countriesData, provincesData, rawMapData, provincesBitmap] = await Promise.all([
-        mapService.fetchCountries(),
-        mapService.fetchDefinitions(),
-        mapService.fetchParsedMapData(),
-        mapService.fetchMapImage('/api/maps/current/provinces.png'),
-      ])
-      
-      this.worldData = {
-        countries: countriesData,
-        provinces: provincesData,
-      }
-
-      this.mapData = {
-        ...rawMapData,
-        provincesBitmap,
-        idBufferResult: {
-          ...rawMapData.idBufferResult,
-          idBuffer: new Uint16Array(rawMapData.idBufferResult.idBuffer.slice().buffer),
-        },
-      }
-    } catch (e) {
-      console.warn('Failed to load map data in MapView', e)
-    }
-
-    if (!this.mapData) throw new Error('Failed to load map data')
+    this.worldData = worldData
+    this.mapData = mapData
 
     this.background = new StaticBackground(this.container, bg)
     this.entities.push(this.background)
@@ -93,6 +66,10 @@ export class MapView implements MapViewContext {
         this.onEvent({ type: 'BACK_TO_MENU' })
       }
     })
+  }
+
+  async load(): Promise<void> {
+    // Carregamento agora é feito pelo SolidJS via useMapData hook
   }
 
   private onClick = (event: MouseEvent): void => {
