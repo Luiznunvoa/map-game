@@ -2,6 +2,7 @@ import { Show } from 'solid-js';
 import type { CreateRoomRequest } from '@/types/room';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { Select } from '@/components/ui/select';
 
 interface CreateRoomModalProps {
   isOpen: boolean;
@@ -32,10 +33,10 @@ export function CreateRoomModal(props: CreateRoomModalProps) {
           <h3 class="text-lg font-bold mb-4">Nova Sala</h3>
           <form onSubmit={handleSubmit} class="flex flex-col gap-3">
             <Input type="text" name="name" placeholder="Nome" required />
-            <select name="visibility" class="p-2 border rounded" required>
+            <Select name="visibility" required>
               <option value="PUBLIC">Público</option>
               <option value="PRIVATE">Privado</option>
-            </select>
+            </Select>
             <div class="flex gap-2">
               <Input type="number" name="speed" value="1" min="1" placeholder="Velocidade" class="w-1/2" required />
               <Input type="number" name="max_players" value="10" min="2" max="100" placeholder="Máx Jogadores" class="w-1/2" required />

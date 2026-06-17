@@ -37,6 +37,8 @@ export class GameEngine implements IGameEngine {
   public raycaster = new Raycaster()
   public mouse = new Vector2()
 
+  public onFrame?: (fps: number) => void;
+
   constructor(container: HTMLElement, worldData: WorldData, mapData: RichMapData, colorMode: MapColorMode = 'political') {
     this.container = container
     this.colorMode = colorMode
@@ -46,7 +48,7 @@ export class GameEngine implements IGameEngine {
     this.background = new StaticBackground(this.container, bg)
     this.entities.push(this.background)
 
-    setupScene(this, this.onFrame)
+    setupScene(this, this.handleFrameTick)
     setupControls(this, this.onClick)
     setupElements(this)
     setupMapEntity(this)
@@ -60,8 +62,22 @@ export class GameEngine implements IGameEngine {
     handleClicks(this, event)
   }
 
-  private onFrame = (state: FrameState): void => {
+  private lastTime = performance.now();
+  private frames = 0;
+
+  private handleFrameTick = (state: FrameState): void => {
     handleFrame(this, state)
+
+    this.frames++;
+    const now = performance.now();
+    if (now >= this.lastTime + 1000) {
+      const fps = Math.round((this.frames * 1000) / (now - this.lastTime));
+      this.frames = 0;
+      this.lastTime = now;
+      if (this.onFrame) {
+        this.onFrame(fps);
+      }
+    }
   }
 
   start(): void {
