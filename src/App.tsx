@@ -1,12 +1,13 @@
 import { Router, Route } from '@solidjs/router';
-import { MenuPage } from '@/pages/MenuPage';
-import { LobbyPage } from '@/pages/LobbyPage';
-import { RoomPage } from '@/pages/RoomPage';
+import { HomePage } from './components/pages/home';
+import { LobbyPage } from './components/pages/looby';
+import { RoomPage } from './components/pages/game';
+import { AuthProvider } from './components/providers/AuthProvider';
 
 export function App() {
   return (
-    <Router>
-      <Route path="/" component={MenuPage} />
+    <Router root={AuthProvider}>
+      <Route path="/" component={HomePage} />
       <Route path="/lobby" component={LobbyPage} />
       <Route path="/room/:id" component={RoomPage} />
     </Router>

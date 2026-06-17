@@ -1,6 +1,7 @@
 
-import { networkAdapter } from '@/lib/network'
 import { unpack } from 'msgpackr'
+
+import { networkAdapter } from '@/lib/network'
 import type { CountryData, ParsedMapData, ProvinceData } from '@/types/data'
 import type { IRequestClient } from '@/types/network'
 
@@ -27,7 +28,7 @@ export class MapService {
         const res = await this.http.request<void, Blob>({
           method: 'GET',
           url: '/api/maps/current',
-          responseType: 'blob'
+          responseType: 'blob',
         })
         
         const ds = new DecompressionStream('gzip')
@@ -55,7 +56,7 @@ export class MapService {
         const response = await this.http.request<void, Blob>({
           method: 'GET',
           url: url,
-          responseType: 'blob'
+          responseType: 'blob',
         })
         return createImageBitmap(response.data)
       })().catch(e => {

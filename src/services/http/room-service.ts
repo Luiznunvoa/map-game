@@ -1,5 +1,5 @@
-import type { CreateRoomRequest, RoomResponse } from '@/types/room'
 import type { IRequestClient } from '@/types/network'
+import type { CreateRoomRequest, RoomResponse } from '@/types/room'
 
 export class RoomService {
   private http: IRequestClient

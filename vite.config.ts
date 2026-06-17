@@ -25,8 +25,8 @@ export default defineConfig({
             if (id.includes('three')) return 'three'
             return 'vendor'
           }
-        }
-      }
-    }
-  }
+        },
+      },
+    },
+  },
 })
