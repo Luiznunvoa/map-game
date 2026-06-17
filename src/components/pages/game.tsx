@@ -1,6 +1,7 @@
 import { createEffect, onCleanup, Show } from 'solid-js';
 import { useParams, useNavigate } from '@solidjs/router';
 import { useMapData } from '@/hooks/map/useMapData';
+import { bg } from '@/assets';
 import { GameEngine } from '@/game';
 import { Loading } from '@/components/features/loading';
 
@@ -20,8 +21,8 @@ export function RoomPage() {
       mapEngine = new GameEngine(containerRef, data.worldData, data.mapData);
       
       mapEngine.onEvent = (event) => {
-        if (event.type === 'BACK_TO_MENU') {
-          navigate('/lobby');
+        if (event.type === 'NAVIGATE') {
+          navigate(event.payload.to);
         }
       };
       
@@ -38,7 +39,10 @@ export function RoomPage() {
   });
 
   return (
-    <div class="relative h-full w-full">
+    <div 
+      class="relative h-full w-full"
+      style={{ "background-image": `url('${bg}')` }}
+    >
       <Show when={mapDataResource()} fallback={
         <Loading message='LOADING MAP...' />
       }>
