@@ -1,4 +1,5 @@
 import axios, { type AxiosInstance, type AxiosRequestConfig, isAxiosError } from 'axios'
+import { setupInterceptors } from './interceptors'
 
 import type { HttpRequest, HttpResponse, IRequestClient } from '@/types/network'
 
@@ -10,8 +11,7 @@ export class AxiosRequestClient implements IRequestClient {
   constructor(baseURL: string) {
     const instance = axios.create({ baseURL })
 
-    // TODO:
-    // setupInterceptors(instance);
+    setupInterceptors(instance);
 
     this.instance = instance
   }

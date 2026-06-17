@@ -1,4 +1,4 @@
-import { BASE_URL } from '@/env'
+
 import { networkAdapter } from '@/lib/network'
 import { unpack } from 'msgpackr'
 import type { CountryData, ParsedMapData, ProvinceData } from '@/types/data'
@@ -24,10 +24,14 @@ export class MapService {
   public fetchParsedMapData(): Promise<ParsedMapData> {
     if (!this.mapDataPromise) {
       this.mapDataPromise = (async () => {
-        const res = await fetch(`${BASE_URL}/api/maps/current`)
-        if (!res.ok) throw new Error('Failed to fetch maps data')
+        const res = await this.http.request<void, Blob>({
+          method: 'GET',
+          url: '/api/maps/current',
+          responseType: 'blob'
+        })
+        
         const ds = new DecompressionStream('gzip')
-        const decompressedStream = res.body!.pipeThrough(ds)
+        const decompressedStream = res.data.stream().pipeThrough(ds)
         const decompressedResponse = new Response(decompressedStream)
         
         // Lê o stream descompactado como buffer binário e decodifica o MessagePack
@@ -48,10 +52,12 @@ export class MapService {
   public fetchMapImage(url: string): Promise<ImageBitmap> {
     if (!this.imageCache[url]) {
       this.imageCache[url] = (async () => {
-        const response = await fetch(url)
-        if (!response.ok) throw new Error(`Failed to load image from ${url}`)
-        const blob = await response.blob()
-        return createImageBitmap(blob)
+        const response = await this.http.request<void, Blob>({
+          method: 'GET',
+          url: url,
+          responseType: 'blob'
+        })
+        return createImageBitmap(response.data)
       })().catch(e => {
         delete this.imageCache[url]
         throw e

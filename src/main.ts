@@ -10,9 +10,4 @@ const container = document.querySelector<HTMLElement>('#scene-container')!
 const game = new Game(container)
  
 await game.start()
- 
-if (import.meta.hot) {
-  import.meta.hot.dispose(async () => {
-    await game.destroy()
-  })
-}
+

@@ -7,6 +7,7 @@ export interface HttpRequest<TBody = unknown> {
   params?: Record<string, unknown>;
   data?: TBody;
   timeout?: number;
+  responseType?: 'arraybuffer' | 'blob' | 'document' | 'json' | 'text' | 'stream';
 }
 
 export interface HttpResponse<TBody = unknown> {
