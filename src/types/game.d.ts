@@ -35,7 +35,7 @@ export interface IGameEngine extends IView {
   mouse: Vector2
 
   onEvent?: GameEventHandler;
-  onFrame?: (fps: number) => void;
+  onFrame?: (state: FrameState) => void;
   load(): Promise<void>
   unload(): Promise<void> | void
   start(): void
