@@ -20,6 +20,8 @@ export interface FrameState {
   scene: Scene,
   camera: PerspectiveCamera,
   renderer: WebGLRenderer,
+  deltaTime: number,
+  fps: number,
 }
 
 export interface SceneState {
@@ -37,6 +39,11 @@ export class CustomScene {
   private animationFrameId: number = 0
   private paused: boolean = false
   private animateCallback: SceneState['onFrame']
+
+  private lastTime: number = performance.now()
+  private lastFrameTime: number = performance.now()
+  private frames: number = 0
+  private currentFps: number = 0
 
   constructor(container: HTMLElement, state: SceneState) {
     this.container = container
@@ -85,12 +92,25 @@ export class CustomScene {
   }
 
   private scheduleFrame(): void {
-    this.animationFrameId = requestAnimationFrame(() => {
+    this.animationFrameId = requestAnimationFrame((time) => {
       if (this.paused) return
+
+      const deltaTime = (time - this.lastFrameTime) / 1000
+      this.lastFrameTime = time
+
+      this.frames++
+      if (time >= this.lastTime + 1000) {
+        this.currentFps = Math.round((this.frames * 1000) / (time - this.lastTime))
+        this.frames = 0
+        this.lastTime = time
+      }
+
       this.animateCallback?.({
         scene: this.scene,
         camera: this.camera,
         renderer: this.renderer,
+        deltaTime,
+        fps: this.currentFps,
       })
       this.renderer.render(this.scene, this.camera)
       this.scheduleFrame()
@@ -107,6 +127,10 @@ export class CustomScene {
   public resume(): void {
     if (!this.paused) return
     this.paused = false
+    const now = performance.now()
+    this.lastFrameTime = now
+    this.lastTime = now
+    this.frames = 0
     this.scheduleFrame()
   }
 

@@ -1,7 +1,8 @@
+import type { Room } from "@/types/room";
 
 
 interface RoomCardProps {
-  room: any;
+  room: Room;
   onClick: (roomId: string) => void;
 }
 

@@ -21,6 +21,8 @@ import type { ProvinceTextures as MapTextures } from './textures.js'
 import { buildProvinceTextures } from './textures.js'
 
 export class Map3D implements Entity {
+  public id: number
+  public type = 'map'
   public group: Group
   public textures: MapTextures
   
@@ -39,7 +41,8 @@ export class Map3D implements Entity {
   public terrain: GlobeMapInput['terrain']
   public defaultMap: GlobeMapInput['defaultMap']
 
-  constructor(data: GlobeMapInput, config: ProvinceGlobeConfig = {}) {
+  constructor(id: number, data: GlobeMapInput, config: ProvinceGlobeConfig = {}) {
+    this.id = id
     const {
       radius = 1.0,
       widthSegments = 128,

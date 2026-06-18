@@ -3,10 +3,13 @@ import { Group } from 'three'
 import type { Entity } from '@/types/entity'
 
 export class StaticBackground implements Entity {
+  public id: number
+  public type = 'background'
   public group: Group
   private container: HTMLElement
 
-  constructor(container: HTMLElement, imageUrl: string) {
+  constructor(id: number, container: HTMLElement, imageUrl: string) {
+    this.id = id
     this.group = new Group()
     this.group.name = 'static-background'
     this.container = container

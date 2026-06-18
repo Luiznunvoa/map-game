@@ -1,11 +1,8 @@
-import { Raycaster, Vector2 } from 'three'
-
-import { KeyboardControls } from '@/controls/keyboard-control'
-import { MouseControls } from '@/controls/mouse-controls'
-import { OrbitControl } from '@/controls/orbit-control'
 import { StaticBackground } from '@/entities/background'
 import { Map3D } from '@/entities/globe'
-import { CustomScene } from '@/lib/scene'
+import type { CustomScene } from '@/game/scene'
+import type { InteractionManager } from '@/game/scene/interaction-manager'
+import type { InteractionManager } from '@/game/scene/interaction-manager'
 import type { RichMapData, WorldData } from '@/types/data'
 import type { Entity } from '@/types/entity'
 import type { MapColorMode } from '@/types/globe'
@@ -21,25 +18,24 @@ export type GameEventHandler = (event: GameEvent) => void
 
 export interface IGameEngine extends IView {
   container: HTMLElement
-  keyboard: KeyboardControls
-  mouseControls: MouseControls
-  orbit: OrbitControl
-  map: Map3D | null
-  background: StaticBackground | null
-  entities: Entity[]
-  scene: CustomScene
-  mapData: RichMapData
-  colorMode: MapColorMode
-  worldData: WorldData | null
-  raycaster: Raycaster
-  mouse: Vector2
 
-  onEvent?: GameEventHandler;
-  onFrame?: (state: FrameState) => void;
-  load(): Promise<void>
+  scene: CustomScene
+  interaction: InteractionManager
+  map: Map3D | null
+  entities: Entity[]
+
+  mapData: RichMapData
+  worldData: WorldData | null
+  colorMode: MapColorMode
+
+  onEvent?: GameEventHandler
+  onFrame?: (fps: number) => void
+
   unload(): Promise<void> | void
   start(): void
   stop(): void
+  setColorMode(viewName: MapColorMode): void
+  generateEntityId(): number
 }
 
 export type GameConstructor<T> = new (...args: unknown[]) => T

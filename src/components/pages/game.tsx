@@ -7,6 +7,7 @@ import { Loading } from '@/components/features/loading';
 import { Button } from '@/components/ui/button';
 import { Select } from '@/components/ui/select';
 import type { MapColorMode } from '@/types/globe';
+import type { GameEvent } from '@/types/game';
 
 export function RoomPage() {
   const params = useParams();
@@ -28,14 +29,14 @@ export function RoomPage() {
 
       engine = new GameEngine(containerRef, data.worldData, data.mapData);
 
-      engine.onEvent = (event) => {
+      engine.onEvent = (event: GameEvent) => {
         if (event.type === 'NAVIGATE') {
           navigate(event.payload.to);
         }
       };
 
-      engine.onFrame = (currentFps) => {
-        handleFrame()
+      engine.onFrame = (currentFps: number) => {
+        handleFrame();
         setFps(currentFps);
       };
 

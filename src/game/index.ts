@@ -1,98 +1,99 @@
-import { Raycaster, Vector2 } from 'three'
-
 import { bg } from '@/assets'
-import { CustomScene, type FrameState } from '@/lib/scene'
 import type { NormalizedColor, RichMapData, WorldData } from '@/types/data'
 import type { Entity } from '@/types/entity'
 import type { GameEventHandler, IGameEngine } from '@/types/game'
 import type { MapColorMode } from '@/types/globe'
 
-import type { KeyboardControls } from './controls/keyboard-control'
-import type { MouseControls } from './controls/mouse-controls'
-import type { OrbitControl } from './controls/orbit-control'
 import { StaticBackground } from './entities/background'
-import type { Map3D } from './entities/globe'
-import { handleClicks } from './handle-clicks'
-import { setupControls } from './setup-controls'
-import { setupElements } from './setup-elements'
-import { handleFrame, setupMapEntity, setupScene } from './setup-map'
+import { Map3D } from './entities/globe'
+import { CustomScene, type FrameState } from './scene'
+import { InteractionManager } from './scene/interaction-manager'
 
 export class GameEngine implements IGameEngine {
-  public onEvent?: GameEventHandler
   public container: HTMLElement
+  private nextEntityId = 1
 
-  public keyboard!: KeyboardControls
-  public mouseControls!: MouseControls 
-  public orbit!: OrbitControl
-
-  public map: Map3D | null = null
-  public background: StaticBackground | null = null
-  public entities: Entity[] = []
-  
   public scene!: CustomScene
+  public interaction!: InteractionManager
+  public map: Map3D | null = null
+  public entities: Entity[] = []
+
   public mapData!: RichMapData
-  public colorMode: MapColorMode = 'political'
   public worldData: WorldData | null = null
+  public colorMode: MapColorMode = 'political'
 
-  public raycaster = new Raycaster()
-  public mouse = new Vector2()
+  public onEvent?: GameEventHandler
+  public onFrame?: (fps: number) => void
 
-  public onFrame?: (fps: number) => void;
+  private lastFps = 0
 
   constructor(container: HTMLElement, worldData: WorldData, mapData: RichMapData, colorMode: MapColorMode = 'political') {
     this.container = container
-    this.colorMode = colorMode
     this.worldData = worldData
     this.mapData = mapData
+    this.colorMode = colorMode
 
-    this.background = new StaticBackground(this.container, bg)
-    this.entities.push(this.background)
+    const background = new StaticBackground(this.generateEntityId(), this.container, bg)
 
-    setupScene(this, this.handleFrameTick)
-    setupControls(this, this.onClick)
-    setupElements(this)
-    setupMapEntity(this)
-  }
+    this.entities.push(background)
 
-  async load(): Promise<void> {
-    // Carregamento agora é feito pelo SolidJS via useMapData hook
+    this.map = new Map3D(this.generateEntityId(), this.mapData, {
+      radius: 1.0,
+      widthSegments: 128,
+      heightSegments: 64,
+      initialColorMode: this.colorMode,
+    })
+
+    this.setColorMode(this.colorMode)
+
+    this.scene = new CustomScene(this.container, {
+      camera: {
+        fov: 20,
+        near: 0.1,
+        far: 1000,
+      },
+      entities: [...this.entities],
+      onFrame: this.handleFrameTick,
+    })
+
+    this.scene.setEntities([this.map, ...this.entities])
+
+    this.interaction = new InteractionManager(this.scene, this.container)
+    this.interaction.onClick(this.onClick)
   }
 
   private onClick = (event: MouseEvent): void => {
-    handleClicks(this, event)
-  }
+    if (!this.container || !this.interaction) return
 
-  private lastTime = performance.now();
-  private frames = 0;
+    const raycastEntities = this.map ? [this.map, ...this.entities] : this.entities
+    const hits = this.interaction.getIntersections(event.clientX, event.clientY, raycastEntities)
+    if (hits.length === 0) return
 
-  private handleFrameTick = (state: FrameState): void => {
-    handleFrame(this, state)
+    // Procurar se atingimos o mapa (a esfera da província)
+    const mapHit = hits.find(hit => hit.entity === this.map && hit.objectName === 'province-sphere')
 
-    this.frames++;
-    const now = performance.now();
-    if (now >= this.lastTime + 1000) {
-      const fps = Math.round((this.frames * 1000) / (now - this.lastTime));
-      this.frames = 0;
-      this.lastTime = now;
-      if (this.onFrame) {
-        this.onFrame(fps);
+    if (mapHit && mapHit.uv && this.map) {
+      const provinceId = this.map.pickProvinceAt(mapHit.uv.x, mapHit.uv.y)
+
+      if (provinceId > 0) {
+        this.map.selectProvince(provinceId)
       }
     }
   }
 
-  start(): void {
-    this.scene.resume()
-  }
+  private handleFrameTick = (state: FrameState): void => {
+    const currentObject = this.map?.group
+    if (currentObject?.rotation && state.camera.position.length() > 8) {
+      currentObject.rotation.y += 0.001
+    }
 
-  stop(): void {
-    this.scene.pause()
-  }
+    this.interaction.updateCamera(state.camera)
+    this.map?.updateTime(performance.now() / 1000)
 
-  async unload(): Promise<void> {
-    this.scene.dispose()
-    this.keyboard.dispose()
-    this.mouseControls.dispose()
-    this.map?.dispose()
+    if (this.onFrame && state.fps !== this.lastFps) {
+      this.lastFps = state.fps
+      this.onFrame(state.fps)
+    }
   }
 
   public setColorMode(viewName: MapColorMode): void {
@@ -112,6 +113,28 @@ export class GameEngine implements IGameEngine {
       }
     }
 
+    this.colorMode = viewName
     this.map?.setColorMode(viewName, customColors)
+  }
+
+  public generateEntityId(): number {
+    return this.nextEntityId++
+  }
+
+  start(): void {
+    this.scene.resume()
+  }
+
+  stop(): void {
+    this.scene.pause()
+  }
+
+  async unload(): Promise<void> {
+    this.interaction.dispose()
+    this.scene.dispose()
+    for (const entity of this.entities) {
+      entity.dispose()
+    }
+    this.map?.dispose()
   }
 }
