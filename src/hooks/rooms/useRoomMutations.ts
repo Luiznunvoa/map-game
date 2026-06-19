@@ -1,4 +1,4 @@
-import { createResource,createSignal } from 'solid-js'
+import { createResource, createSignal } from 'solid-js'
 
 import { networkAdapter } from '@/lib/network'
 import { RoomService } from '@/services/http/room-service'
@@ -11,12 +11,12 @@ export function useCreateRoom(onSuccess?: (roomId: string) => void) {
 
   const [resource] = createResource(roomArgs, async (args) => {
     const res = await roomService.createRoom(args)
-    
+
     // Chama o callback de sucesso para navegação ou fechamento de modais
     if (onSuccess && res.room_id) {
       onSuccess(res.room_id)
     }
-    
+
     return res
   })
 

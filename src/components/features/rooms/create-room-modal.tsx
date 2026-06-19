@@ -1,21 +1,22 @@
-import { Show } from 'solid-js';
-import type { CreateRoomRequest } from '@/types/room';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { Select } from '@/components/ui/select';
+import { Show } from 'solid-js'
+
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Select } from '@/components/ui/select'
+import type { CreateRoomRequest } from '@/types/room'
 
 interface CreateRoomModalProps {
-  isOpen: boolean;
-  isLoading: boolean;
-  errorMessage?: string;
-  onClose: () => void;
-  onSubmit: (data: CreateRoomRequest) => void;
+  isOpen: boolean
+  isLoading: boolean
+  errorMessage?: string
+  onClose: () => void
+  onSubmit: (data: CreateRoomRequest) => void
 }
 
 export function CreateRoomModal(props: CreateRoomModalProps) {
   const handleSubmit = (e: Event) => {
-    e.preventDefault();
-    const formData = new FormData(e.target as HTMLFormElement);
+    e.preventDefault()
+    const formData = new FormData(e.target as HTMLFormElement)
     props.onSubmit({
       name: formData.get('name') as string,
       visibility: formData.get('visibility') as string,
@@ -23,8 +24,8 @@ export function CreateRoomModal(props: CreateRoomModalProps) {
       speed: parseInt(formData.get('speed') as string, 10),
       save_size_limit: 1048576,
       max_players: parseInt(formData.get('max_players') as string, 10),
-    });
-  };
+    })
+  }
 
   return (
     <Show when={props.isOpen}>
@@ -38,19 +39,40 @@ export function CreateRoomModal(props: CreateRoomModalProps) {
               <option value="PRIVATE">Privado</option>
             </Select>
             <div class="flex gap-2">
-              <Input type="number" name="speed" value="1" min="1" placeholder="Velocidade" class="w-1/2" required />
-              <Input type="number" name="max_players" value="10" min="2" max="100" placeholder="Máx Jogadores" class="w-1/2" required />
+              <Input
+                type="number"
+                name="speed"
+                value="1"
+                min="1"
+                placeholder="Velocidade"
+                class="w-1/2"
+                required
+              />
+              <Input
+                type="number"
+                name="max_players"
+                value="10"
+                min="2"
+                max="100"
+                placeholder="Máx Jogadores"
+                class="w-1/2"
+                required
+              />
             </div>
             <Show when={props.errorMessage}>
               <p class="text-red-600 text-sm">{props.errorMessage}</p>
             </Show>
             <div class="flex justify-end gap-2 mt-4">
-              <Button type="button" class="bg-gray-400 hover:bg-gray-500" onClick={props.onClose}>Cancelar</Button>
-              <Button type="submit" disabled={props.isLoading}>Criar</Button>
+              <Button type="button" class="bg-gray-400 hover:bg-gray-500" onClick={props.onClose}>
+                Cancelar
+              </Button>
+              <Button type="submit" disabled={props.isLoading}>
+                Criar
+              </Button>
             </div>
           </form>
         </div>
       </div>
     </Show>
-  );
+  )
 }

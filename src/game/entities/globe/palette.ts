@@ -1,33 +1,33 @@
 import type { NormalizedColor, ProvinceId } from '@/types/data'
 import type { GlobeMapInput, MapColorMode } from '@/types/globe'
 
-const TERRAIN_DEFAULT: NormalizedColor = [0.50, 0.50, 0.50]
-const TERRAIN_SEA: NormalizedColor = [0.08, 0.18, 0.40]
+const TERRAIN_DEFAULT: NormalizedColor = [0.5, 0.5, 0.5]
+const TERRAIN_SEA: NormalizedColor = [0.08, 0.18, 0.4]
 
 const TERRAIN_PALETTE: Record<string, NormalizedColor> = {
-  ocean:      [0.08, 0.18, 0.40],
-  arctic:     [0.92, 0.92, 0.95],
-  farmlands:  [0.54, 0.41, 0.65],
+  ocean: [0.08, 0.18, 0.4],
+  arctic: [0.92, 0.92, 0.95],
+  farmlands: [0.54, 0.41, 0.65],
 
-  forest:     [0.33, 0.62, 0.24],
-  woods:      [0.55, 0.82, 0.42],
+  forest: [0.33, 0.62, 0.24],
+  woods: [0.55, 0.82, 0.42],
 
-  hills:      [0.53, 0.27, 0.00],
-  mountain:   [0.46, 0.42, 0.47],
-  plains:     [0.87, 0.83, 0.60],
-  desert:     [0.95, 0.83, 0.53],
-  jungle:     [0.17, 0.47, 0.17],
-  marsh:      [0.42, 0.60, 0.50],
-  steppe:     [0.76, 0.80, 0.45],
+  hills: [0.53, 0.27, 0.0],
+  mountain: [0.46, 0.42, 0.47],
+  plains: [0.87, 0.83, 0.6],
+  desert: [0.95, 0.83, 0.53],
+  jungle: [0.17, 0.47, 0.17],
+  marsh: [0.42, 0.6, 0.5],
+  steppe: [0.76, 0.8, 0.45],
 }
 
 const CONTINENT_COLORS: NormalizedColor[] = [
   [0.78, 0.31, 0.31],
-  [0.31, 0.60, 0.78],
-  [0.78, 0.60, 0.31],
+  [0.31, 0.6, 0.78],
+  [0.78, 0.6, 0.31],
   [0.33, 0.62, 0.24],
-  [0.60, 0.31, 0.78],
-  [0.31, 0.78, 0.60],
+  [0.6, 0.31, 0.78],
+  [0.31, 0.78, 0.6],
   [0.78, 0.78, 0.31],
 ]
 
@@ -71,7 +71,9 @@ function fillByProvinceColor(
   provinceById: GlobeMapInput['provinceById'],
   seaStarts: Set<ProvinceId>,
 ): void {
-  const SEA_R = 0.08, SEA_G = 0.18, SEA_B = 0.40
+  const SEA_R = 0.08,
+    SEA_G = 0.18,
+    SEA_B = 0.4
 
   for (const [idStr, def] of Object.entries(provinceById)) {
     const id = Number(idStr)
@@ -97,7 +99,9 @@ function fillPolitical(
   seaStarts: Set<ProvinceId>,
   customColors?: Record<ProvinceId, NormalizedColor>,
 ): void {
-  const SEA_R = 0.08, SEA_G = 0.18, SEA_B = 0.40
+  const SEA_R = 0.08,
+    SEA_G = 0.18,
+    SEA_B = 0.4
 
   for (const [idStr, def] of Object.entries(provinceById)) {
     const id = Number(idStr)
@@ -168,7 +172,7 @@ function fillByContinent(
   seaStarts: Set<ProvinceId>,
   provinceById: GlobeMapInput['provinceById'],
 ): void {
-  const SEA: NormalizedColor = [0.08, 0.18, 0.40]
+  const SEA: NormalizedColor = [0.08, 0.18, 0.4]
   const UNCLAIMED: NormalizedColor = [0.35, 0.35, 0.35]
 
   const idToColor = new Map<ProvinceId, NormalizedColor>()
@@ -186,9 +190,7 @@ function fillByContinent(
     if (id >= paletteSize) continue
     const base = id * 3
 
-    const color = seaStarts.has(id)
-      ? SEA
-      : (idToColor.get(id) ?? UNCLAIMED)
+    const color = seaStarts.has(id) ? SEA : (idToColor.get(id) ?? UNCLAIMED)
 
     paletteData[base] = color[0]
     paletteData[base + 1] = color[1]
@@ -203,7 +205,7 @@ function fillByRegion(
   seaStarts: Set<ProvinceId>,
   provinceById: GlobeMapInput['provinceById'],
 ): void {
-  const SEA: NormalizedColor = [0.08, 0.18, 0.40]
+  const SEA: NormalizedColor = [0.08, 0.18, 0.4]
   const UNCLAIMED: NormalizedColor = [0.35, 0.35, 0.35]
 
   const idToColor = new Map<ProvinceId, NormalizedColor>()
@@ -221,9 +223,7 @@ function fillByRegion(
     if (id >= paletteSize) continue
     const base = id * 3
 
-    const color = seaStarts.has(id)
-      ? SEA
-      : (idToColor.get(id) ?? UNCLAIMED)
+    const color = seaStarts.has(id) ? SEA : (idToColor.get(id) ?? UNCLAIMED)
 
     paletteData[base] = color[0]
     paletteData[base + 1] = color[1]
@@ -241,7 +241,7 @@ export function floatRgbToRgbaBytes(
     out[i * 4 + 0] = Math.min(255, Math.round(rgb[i * 3 + 0] * 255))
     out[i * 4 + 1] = Math.min(255, Math.round(rgb[i * 3 + 1] * 255))
     out[i * 4 + 2] = Math.min(255, Math.round(rgb[i * 3 + 2] * 255))
-    out[i * 4 + 3] = (i === 0 || seaStarts.has(i)) ? 0 : 255
+    out[i * 4 + 3] = i === 0 || seaStarts.has(i) ? 0 : 255
   }
   return out
 }

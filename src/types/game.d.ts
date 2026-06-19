@@ -8,11 +8,9 @@ import type { Entity } from '@/types/entity'
 import type { MapColorMode } from '@/types/globe'
 import type { IView } from '@/types/view'
 
-export type GameEvent = 
-  | { type: 'NAVIGATE'; payload: { to: string } }
-  // | { type: 'SELECT_PROVINCE'; payload: { id: number } }
-  // | { type: 'MOVE_TROOP'; payload: { troop_id: number, destiny_id: number }}
-
+export type GameEvent = { type: 'NAVIGATE'; payload: { to: string } }
+// | { type: 'SELECT_PROVINCE'; payload: { id: number } }
+// | { type: 'MOVE_TROOP'; payload: { troop_id: number, destiny_id: number }}
 
 export type GameEventHandler = (event: GameEvent) => void
 

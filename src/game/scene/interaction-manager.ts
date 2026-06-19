@@ -1,4 +1,4 @@
-import { PerspectiveCamera,Raycaster, Vector2 } from 'three'
+import { PerspectiveCamera, Raycaster, Vector2 } from 'three'
 
 import type { Entity } from '@/types/entity'
 
@@ -36,8 +36,8 @@ export class InteractionManager {
   private phi = Math.PI / 2
   private readonly minRadius = 1.125
   private readonly maxRadius = 20
-  private readonly minPhi = 0.50
-  private readonly maxPhi = Math.PI - 0.50
+  private readonly minPhi = 0.5
+  private readonly maxPhi = Math.PI - 0.5
   private readonly zoomSpeed = 0.0015
   private readonly keyOrbitSpeed = 0.03
   private readonly mouseOrbitSpeed = 0.0025
@@ -58,7 +58,7 @@ export class InteractionManager {
   // --- MOUSE EVENTS ---
   private onMouseDown = (e: Event): void => {
     const mouseEvent = e as MouseEvent
-    
+
     // Left button (0) for selection, middle button (1) for camera
     if (mouseEvent.button === 0) {
       this.isSelecting = true
@@ -74,7 +74,7 @@ export class InteractionManager {
 
   private onMouseUp = (e: Event): void => {
     const mouseEvent = e as MouseEvent
-    
+
     if (mouseEvent.button === 0 && this.isSelecting) {
       this.isSelecting = false
       const dx = mouseEvent.clientX - this.startX
@@ -92,7 +92,7 @@ export class InteractionManager {
 
   private onMouseMove = (e: Event): void => {
     const mouseEvent = e as MouseEvent
-    
+
     if (this.isCameraDragging) {
       this.dragDeltaX += mouseEvent.movementX
       this.dragDeltaY += mouseEvent.movementY
@@ -180,9 +180,13 @@ export class InteractionManager {
     this.zoomDelta = 0
   }
 
-  public getIntersections(clientX: number, clientY: number, entities: Entity[]): IntersectionResult[] {
+  public getIntersections(
+    clientX: number,
+    clientY: number,
+    entities: Entity[],
+  ): IntersectionResult[] {
     const rect = this.container.getBoundingClientRect()
-    
+
     // Normalize coordinates to -1 to 1
     this.mouse.x = ((clientX - rect.left) / rect.width) * 2 - 1
     this.mouse.y = -((clientY - rect.top) / rect.height) * 2 + 1

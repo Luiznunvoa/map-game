@@ -22,11 +22,9 @@ export class AxiosRequestClient implements IRequestClient {
   ): Promise<HttpResponse<TResponse>> {
     const req: AxiosRequestConfig = {
       ...config,
-      headers: config.headers ?? (
-        METHODS_WITH_BODY.has(config.method) ? 
-          { 'Content-Type': 'application/json' } 
-          : undefined
-      ),
+      headers:
+        config.headers ??
+        (METHODS_WITH_BODY.has(config.method) ? { 'Content-Type': 'application/json' } : undefined),
     }
 
     try {
@@ -38,7 +36,7 @@ export class AxiosRequestClient implements IRequestClient {
       }
     } catch (error) {
       throw this.toError(error)
-    } 
+    }
   }
 
   private toError(error: unknown): Error {

@@ -6,11 +6,11 @@ export function setupInterceptors(instance: AxiosInstance): void {
   instance.interceptors.request.use(
     (config: InternalAxiosRequestConfig) => {
       const token = getCookie('auth_token')
-      
+
       if (token && config.headers) {
         config.headers.Authorization = `Bearer ${token}`
       }
-      
+
       return config
     },
     (error) => {
@@ -27,7 +27,7 @@ export function setupInterceptors(instance: AxiosInstance): void {
         // Token inválido ou expirado
         removeCookie('auth_token')
         removeCookie('user_email')
-        // alert("Sua sessão expirou!") 
+        // alert("Sua sessão expirou!")
         // window.location.reload() // Poderia forçar refresh para ir pro menu
       }
       return Promise.reject(error)

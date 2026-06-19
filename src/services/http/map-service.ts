@@ -1,18 +1,25 @@
-
 import { unpack } from 'msgpackr'
 
 import { networkAdapter } from '@/lib/network'
-import type { CountryData, ParsedMapData, ProvinceData } from '@/types/data'
+import type { CountryData, ProvinceData, RawMapData } from '@/types/data'
 import type { IRequestClient } from '@/types/network'
 
 export class MapService {
   private http: IRequestClient
 
   // Caches
-  private mapDataPromise: Promise<ParsedMapData> | null = null
+  private currentRoomId: string | null = null
+  private mapDataPromise: Promise<RawMapData> | null = null
   private countriesPromise: Promise<CountryData[]> | null = null
   private definitionsPromise: Promise<ProvinceData[]> | null = null
   private imageCache: Record<string, Promise<ImageBitmap>> = {}
+
+  private checkRoomId(roomId: string) {
+    if (this.currentRoomId !== roomId) {
+      this.clearCache()
+      this.currentRoomId = roomId
+    }
+  }
 
   constructor(http: IRequestClient) {
     this.http = http
@@ -22,23 +29,24 @@ export class MapService {
    * Requisita o parsing completo do mapa em formato JSON pronto.
    * Substitui todo o parsing-pipeline no cliente.
    */
-  public fetchParsedMapData(): Promise<ParsedMapData> {
+  public fetchParsedMapData(roomId: string): Promise<RawMapData> {
+    this.checkRoomId(roomId)
     if (!this.mapDataPromise) {
       this.mapDataPromise = (async () => {
         const res = await this.http.request<void, Blob>({
           method: 'GET',
-          url: '/api/maps/current',
+          url: `/api/rooms/${roomId}/map`,
           responseType: 'blob',
         })
-        
+
         const ds = new DecompressionStream('gzip')
         const decompressedStream = res.data.stream().pipeThrough(ds)
         const decompressedResponse = new Response(decompressedStream)
-        
+
         // Lê o stream descompactado como buffer binário e decodifica o MessagePack
         const buffer = await decompressedResponse.arrayBuffer()
-        return unpack(new Uint8Array(buffer)) as ParsedMapData
-      })().catch(e => {
+        return unpack(new Uint8Array(buffer)) as RawMapData
+      })().catch((e) => {
         this.mapDataPromise = null // Invalida o cache em caso de erro
         throw e
       })
@@ -59,14 +67,13 @@ export class MapService {
           responseType: 'blob',
         })
         return createImageBitmap(response.data)
-      })().catch(e => {
+      })().catch((e) => {
         delete this.imageCache[url]
         throw e
       })
     }
     return this.imageCache[url]
   }
-
 
   /**
    * (Opcional) Helper para extrair RGBA array puro da imagem
@@ -75,10 +82,12 @@ export class MapService {
   public async fetchRawImageData(url: string): Promise<ImageData> {
     const imgBitmap = await this.fetchMapImage(url)
     const canvas = new OffscreenCanvas(imgBitmap.width, imgBitmap.height)
-    
-    const ctx = canvas.getContext('2d', { willReadFrequently: true }) as OffscreenCanvasRenderingContext2D
+
+    const ctx = canvas.getContext('2d', {
+      willReadFrequently: true,
+    }) as OffscreenCanvasRenderingContext2D
     if (!ctx) throw new Error('OffscreenCanvas 2D not supported')
-    
+
     ctx.drawImage(imgBitmap, 0, 0)
     return ctx.getImageData(0, 0, canvas.width, canvas.height)
   }
@@ -86,15 +95,19 @@ export class MapService {
   /**
    * Retorna os dados dos países do jogo
    */
-  public fetchCountries(): Promise<CountryData[]> {
+  public fetchCountries(roomId: string): Promise<CountryData[]> {
+    this.checkRoomId(roomId)
     if (!this.countriesPromise) {
-      this.countriesPromise = this.http.request<void, CountryData[]>({
-        method: 'GET',
-        url: '/api/maps/current/countries.json',
-      }).then(res => res.data).catch(e => {
-        this.countriesPromise = null
-        throw e
-      })
+      this.countriesPromise = this.http
+        .request<void, CountryData[]>({
+          method: 'GET',
+          url: `/api/rooms/${roomId}/map/countries.json`,
+        })
+        .then((res) => res.data)
+        .catch((e) => {
+          this.countriesPromise = null
+          throw e
+        })
     }
     return this.countriesPromise
   }
@@ -102,15 +115,19 @@ export class MapService {
   /**
    * Retorna as definições base de todas as províncias
    */
-  public fetchDefinitions(): Promise<ProvinceData[]> {
+  public fetchDefinitions(roomId: string): Promise<ProvinceData[]> {
+    this.checkRoomId(roomId)
     if (!this.definitionsPromise) {
-      this.definitionsPromise = this.http.request<void, ProvinceData[]>({
-        method: 'GET',
-        url: '/api/maps/current/definitions.json',
-      }).then(res => res.data).catch(e => {
-        this.definitionsPromise = null
-        throw e
-      })
+      this.definitionsPromise = this.http
+        .request<void, ProvinceData[]>({
+          method: 'GET',
+          url: `/api/rooms/${roomId}/map/definitions.json`,
+        })
+        .then((res) => res.data)
+        .catch((e) => {
+          this.definitionsPromise = null
+          throw e
+        })
     }
     return this.definitionsPromise
   }

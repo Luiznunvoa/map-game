@@ -1,66 +1,64 @@
-import { createSignal, createEffect, onCleanup, Show } from 'solid-js';
-import { useParams, useNavigate } from '@solidjs/router';
-import { useMapData } from '@/hooks/map/useMapData';
-import { bg } from '@/assets';
-import { GameEngine } from '@/game';
-import { Loading } from '@/components/features/loading';
-import { Button } from '@/components/ui/button';
-import { Select } from '@/components/ui/select';
-import type { MapColorMode } from '@/types/globe';
-import type { GameEvent } from '@/types/game';
+import { useNavigate,useParams } from '@solidjs/router'
+import { createEffect, createSignal, onCleanup, Show } from 'solid-js'
+
+import { bg } from '@/assets'
+import { Loading } from '@/components/features/loading'
+import { Button } from '@/components/ui/button'
+import { Select } from '@/components/ui/select'
+import { GameEngine } from '@/game'
+import { useMapData } from '@/hooks/map/useMapData'
+import type { GameEvent } from '@/types/game'
+import type { MapColorMode } from '@/types/globe'
 
 export function RoomPage() {
-  const params = useParams();
-  const navigate = useNavigate();
-  let containerRef!: HTMLDivElement;
-  let engine: GameEngine | null = null;
+  const params = useParams()
+  const navigate = useNavigate()
+  let containerRef!: HTMLDivElement
+  let engine: GameEngine | null = null
 
-  const mapDataResource = useMapData();
-  const [fps, setFps] = createSignal(0);
+  const mapDataResource = useMapData(() => params.id)
+  const [fps, setFps] = createSignal(0)
 
-  function handleFrame () {
-
+  function handleFrame(fps: number) {
+    setFps(fps)
   }
 
   createEffect(() => {
-    const data = mapDataResource();
+    const data = mapDataResource()
     if (data && containerRef && !engine) {
-      console.log(`Entrando na sala: ${params.id}`);
+      console.log(`Entrando na sala: ${params.id}`)
 
-      engine = new GameEngine(containerRef, data.worldData, data.mapData);
+      engine = new GameEngine(containerRef, data.worldData, data.mapData)
 
       engine.onEvent = (event: GameEvent) => {
         if (event.type === 'NAVIGATE') {
-          navigate(event.payload.to);
+          navigate(event.payload.to)
         }
-      };
+      }
 
       engine.onFrame = (currentFps: number) => {
-        handleFrame();
-        setFps(currentFps);
-      };
+        handleFrame(currentFps)
+      }
 
-      engine.start();
+      engine.start()
     }
-  });
+  })
 
   onCleanup(async () => {
     if (engine) {
-      engine.stop();
-      await engine.unload();
-      engine = null;
+      engine.stop()
+      await engine.unload()
+      engine = null
     }
-  });
+  })
 
   return (
     <div
       class="relative h-screen w-full overflow-hidden"
-      style={{ "background-image": `url('${bg}')` }}
+      style={{ 'background-image': `url('${bg}')` }}
     >
-      <Show when={mapDataResource()} fallback={
-        <Loading message='LOADING MAP...' />
-      }>
-        <div ref={containerRef} class='absolute inset-0' />
+      <Show when={mapDataResource()} fallback={<Loading message="LOADING MAP..." />}>
+        <div ref={containerRef} class="absolute inset-0" />
       </Show>
 
       {/* UI Overlay */}
@@ -83,12 +81,14 @@ export function RoomPage() {
             <option value="region">Modo Regiões</option>
           </Select>
 
-          <Button class="bg-red-600 hover:bg-red-700 py-1.5 px-4 text-sm shadow" onClick={() => navigate('/lobby')}>
+          <Button
+            class="bg-red-600 hover:bg-red-700 py-1.5 px-4 text-sm shadow"
+            onClick={() => navigate('/lobby')}
+          >
             Sair da Sala
           </Button>
         </div>
       </div>
     </div>
-  );
+  )
 }
-

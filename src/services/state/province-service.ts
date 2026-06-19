@@ -1,4 +1,4 @@
-import type { AppWebSocketEvents, IHttpStateService,INetworkAdapter } from '@/types/network'
+import type { AppWebSocketEvents, IHttpStateService, INetworkAdapter } from '@/types/network'
 import type { ProvinceState } from '@/types/state'
 
 export class ProvinceService implements IHttpStateService<ProvinceState, number> {

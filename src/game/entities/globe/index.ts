@@ -25,7 +25,7 @@ export class Map3D implements Entity {
   public type = 'map'
   public group: Group
   public textures: MapTextures
-  
+
   private geometry: SphereGeometry
   private material: ShaderMaterial
   private atmosphereGeometry: SphereGeometry
@@ -58,23 +58,24 @@ export class Map3D implements Entity {
     this.defaultMap = data.defaultMap
 
     this.textures = buildProvinceTextures(data, initialColorMode)
-    const { idTexture, paletteTexture, maxProvinceId, mapWidth, mapHeight, idBuffer } = this.textures
-    
+    const { idTexture, paletteTexture, maxProvinceId, mapWidth, mapHeight, idBuffer } =
+      this.textures
+
     this.mapWidth = mapWidth
     this.mapHeight = mapHeight
     this.idBuffer = idBuffer
 
     this.uniforms = {
-      u_idTexture:       { value: idTexture },
-      u_palette:         { value: paletteTexture },
-      u_paletteSize:     { value: maxProvinceId + 1 },
-      u_selectedId:      { value: 0 },
-      u_highlightColor:  { value: new Vector3(1.0, 0.85, 0.0) },
-      u_lightDir:        { value: new Vector3(5.0, 3.0, 5.0).normalize() },
+      u_idTexture: { value: idTexture },
+      u_palette: { value: paletteTexture },
+      u_paletteSize: { value: maxProvinceId + 1 },
+      u_selectedId: { value: 0 },
+      u_highlightColor: { value: new Vector3(1.0, 0.85, 0.0) },
+      u_lightDir: { value: new Vector3(5.0, 3.0, 5.0).normalize() },
       u_ambientStrength: { value: 0.35 },
-      u_time:            { value: 0.0 },
-      u_vMin:            { value: mapVMin },
-      u_vMax:            { value: mapVMax },
+      u_time: { value: 0.0 },
+      u_vMin: { value: mapVMin },
+      u_vMax: { value: mapVMax },
     }
 
     this.material = new ShaderMaterial({
@@ -112,10 +113,10 @@ export class Map3D implements Entity {
     if (v < this.mapVMin || v > this.mapVMax) return 0 // Polo = oceano
 
     const mappedV = (v - this.mapVMin) / (this.mapVMax - this.mapVMin)
-    
+
     // O bitmap é top-down, então invertemos o V mapeado
     const x = Math.floor(u * this.mapWidth)
-    const y = Math.floor(mappedV * this.mapHeight) 
+    const y = Math.floor(mappedV * this.mapHeight)
     const clampedX = Math.max(0, Math.min(this.mapWidth - 1, x))
     const clampedY = Math.max(0, Math.min(this.mapHeight - 1, y))
     return this.idBuffer[clampedY * this.mapWidth + clampedX] ?? 0
@@ -151,4 +152,3 @@ export class Map3D implements Entity {
     this.textures.dispose()
   }
 }
-

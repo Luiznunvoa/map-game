@@ -1,9 +1,4 @@
-import {
-  PerspectiveCamera,
-  Scene,
-  Vector3,
-  WebGLRenderer,
-} from 'three'
+import { PerspectiveCamera, Scene, Vector3, WebGLRenderer } from 'three'
 
 import type { Entity } from '@/types/entity'
 
@@ -17,11 +12,11 @@ export interface CameraConfig {
 }
 
 export interface FrameState {
-  scene: Scene,
-  camera: PerspectiveCamera,
-  renderer: WebGLRenderer,
-  deltaTime: number,
-  fps: number,
+  scene: Scene
+  camera: PerspectiveCamera
+  renderer: WebGLRenderer
+  deltaTime: number
+  fps: number
 }
 
 export interface SceneState {
@@ -140,7 +135,7 @@ export class CustomScene {
 
   public setEntities(entities: Entity[]): void {
     this.scene.clear()
-    entities.forEach(entity => this.scene.add(entity.group))
+    entities.forEach((entity) => this.scene.add(entity.group))
   }
 
   public dispose(): void {

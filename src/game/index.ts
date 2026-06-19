@@ -27,7 +27,12 @@ export class GameEngine implements IGameEngine {
 
   private lastFps = 0
 
-  constructor(container: HTMLElement, worldData: WorldData, mapData: RichMapData, colorMode: MapColorMode = 'political') {
+  constructor(
+    container: HTMLElement,
+    worldData: WorldData,
+    mapData: RichMapData,
+    colorMode: MapColorMode = 'political',
+  ) {
     this.container = container
     this.worldData = worldData
     this.mapData = mapData
@@ -70,7 +75,9 @@ export class GameEngine implements IGameEngine {
     if (hits.length === 0) return
 
     // Procurar se atingimos o mapa (a esfera da província)
-    const mapHit = hits.find(hit => hit.entity === this.map && hit.objectName === 'province-sphere')
+    const mapHit = hits.find(
+      (hit) => hit.entity === this.map && hit.objectName === 'province-sphere',
+    )
 
     if (mapHit && mapHit.uv && this.map) {
       const provinceId = this.map.pickProvinceAt(mapHit.uv.x, mapHit.uv.y)
@@ -105,7 +112,7 @@ export class GameEngine implements IGameEngine {
       customColors = {}
       for (const prov of this.worldData.provinces) {
         if (prov.owner && this.worldData.countries) {
-          const ownerCountry = this.worldData.countries.find(c => c.tag === prov.owner)
+          const ownerCountry = this.worldData.countries.find((c) => c.tag === prov.owner)
           if (ownerCountry) {
             customColors[prov.id] = ownerCountry.color
           }

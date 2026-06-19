@@ -20,5 +20,4 @@ export interface Room {
   role: string
 }
 
-export type RoomResponse =  Room 
-
+export type RoomResponse = Room

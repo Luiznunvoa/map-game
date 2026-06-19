@@ -1,11 +1,11 @@
-import type { AppWebSocketEvents, IHttpStateService,INetworkAdapter } from '@/types/network'
+import type { AppWebSocketEvents, IHttpStateService, INetworkAdapter } from '@/types/network'
 import type { PlayerState } from '@/types/state'
 
 export class PlayerService implements IHttpStateService<PlayerState, number> {
   private adapter: INetworkAdapter<AppWebSocketEvents>
 
   constructor(adapter: INetworkAdapter<AppWebSocketEvents>) {
-    this.adapter = adapter 
+    this.adapter = adapter
   }
 
   public onStateChange(handler: (data: PlayerState) => void): () => void {

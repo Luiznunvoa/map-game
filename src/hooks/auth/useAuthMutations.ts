@@ -15,10 +15,10 @@ export function useLogin() {
   // O recurso reage quando loginArgs recebe um valor
   const [resource] = createResource(loginArgs, async (args) => {
     const response = await authService.login(args)
-    
+
     // Atualiza o Provider global após o sucesso
     auth.login(response.token, response.user?.email)
-    
+
     return response
   })
 
@@ -29,7 +29,7 @@ export function useLogin() {
   return {
     mutate,
     // o resource contém os estados reativos: resource.loading, resource.error, resource()
-    resource, 
+    resource,
   }
 }
 

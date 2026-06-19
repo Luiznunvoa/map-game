@@ -1,4 +1,4 @@
-import { createSignal, onCleanup,onMount } from 'solid-js'
+import { createSignal, onCleanup, onMount } from 'solid-js'
 
 import { BASE_URL } from '@/env'
 import { networkAdapter } from '@/lib/network'
@@ -22,16 +22,18 @@ export function useRoomsWs() {
   }
 
   onMount(() => {
-    const wsUrl = BASE_URL ? BASE_URL.replace(/^http/, 'ws') + '/ws/rooms' : 'ws://localhost:3000/ws/rooms'
-    
+    const wsUrl = BASE_URL
+      ? BASE_URL.replace(/^http/, 'ws') + '/ws/rooms'
+      : 'ws://localhost:3000/ws/rooms'
+
     networkAdapter.ws.onConnect(() => {
       networkAdapter.ws.send('subscribe_rooms', { page: 1, per_page: 20 })
     })
-    
+
     networkAdapter.ws.on('rooms_update', handleRoomsUpdate)
 
     try {
-      networkAdapter.ws.connect(wsUrl).catch((err: any) => {
+      networkAdapter.ws.connect(wsUrl).catch((err: unknown) => {
         console.error('Failed to connect to lobby WS:', err)
       })
       fetchRooms()
@@ -40,7 +42,7 @@ export function useRoomsWs() {
     }
   })
 
-  onCleanup(() => {
+  onCleanup(() => { 
     networkAdapter.ws.off('rooms_update', handleRoomsUpdate)
     networkAdapter.ws.disconnect()
   })
