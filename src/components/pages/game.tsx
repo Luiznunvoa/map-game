@@ -9,7 +9,7 @@ import { Select } from '@/components/ui/select'
 import { GameEngine } from '@/game'
 import { useMapData } from '@/hooks/map/useMapData'
 import { useLeaveRoom } from '@/hooks/rooms/use-leave-room'
-import { useRoomWs } from '@/hooks/rooms/use-room-ws'
+import { useGameSessionWs } from '@/hooks/rooms/use-game-session-ws'
 import type { GameEvent } from '@/types/game'
 import type { MapColorMode } from '@/types/globe'
 
@@ -25,7 +25,7 @@ export function RoomPage() {
   } = useLeaveRoom(() => navigate('/lobby'))
 
   // Per-room WebSocket — tracks connected players and handles room closure
-  const { players } = useRoomWs(
+  const { players } = useGameSessionWs(
     () => params.id,
     () => navigate('/lobby'), // called when host leaves and room_closed is broadcast
   )

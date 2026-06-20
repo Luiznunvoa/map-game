@@ -32,3 +32,11 @@ export interface PlayerInRoom {
   role: 'HOST' | 'GUEST' | 'SPECTATOR'
   joined_at: string
 }
+
+export interface GameTickPayload {
+  event: string
+  date: string
+  period: number
+  speed: number
+  paused: boolean
+}

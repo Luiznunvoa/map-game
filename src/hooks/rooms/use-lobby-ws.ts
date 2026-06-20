@@ -2,9 +2,10 @@ import { createSignal, onCleanup, onMount } from 'solid-js'
 
 import { BASE_URL } from '@/env'
 import { networkAdapter } from '@/lib/network'
+import type { Room } from '@/types/room'
 
-export function useRoomsWs() {
-  const [rooms, setRooms] = createSignal<any[]>([])
+export function useLobbyWs() {
+  const [rooms, setRooms] = createSignal<Room[]>([])
   const [isLoading, setIsLoading] = createSignal(true)
   const [isRefreshing, setIsRefreshing] = createSignal(false)
 
@@ -13,7 +14,7 @@ export function useRoomsWs() {
     networkAdapter.ws.send('fetch_rooms', { page: 1, per_page: 20 })
   }
 
-  const handleRoomsUpdate = (data: any) => {
+  const handleRoomsUpdate = (data: { rooms: Room[] } | undefined) => {
     if (data && data.rooms) {
       setRooms(data.rooms)
       setIsLoading(false)

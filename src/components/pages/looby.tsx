@@ -7,12 +7,12 @@ import { RoomList } from '@/components/features/rooms/room-list'
 import { Button } from '@/components/ui/button'
 import { useLogout } from '@/hooks/auth/useAuthMutations'
 import { useCreateRoom } from '@/hooks/rooms/useRoomMutations'
-import { useRoomsWs } from '@/hooks/rooms/useRoomsWs'
+import { useLobbyWs } from '@/hooks/rooms/use-lobby-ws'
 
 export function LobbyPage() {
   const navigate = useNavigate()
   const [showCreateModal, setShowCreateModal] = createSignal(false)
-  const { rooms, isLoading, isRefreshing, fetchRooms } = useRoomsWs()
+  const { rooms, isLoading, isRefreshing, fetchRooms } = useLobbyWs()
   const { mutate: logoutMutate } = useLogout()
 
   const { mutate: createRoomMutate, resource: createRoomResource } = useCreateRoom((roomId) => {

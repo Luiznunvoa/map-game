@@ -12,7 +12,7 @@ import type { PlayerInRoom } from '@/types/room'
  * @param roomId  - The room UUID (from route params)
  * @param onRoomClosed - Called when the host leaves and the room is destroyed
  */
-export function useRoomWs(roomId: () => string, onRoomClosed: () => void) {
+export function useGameSessionWs(roomId: () => string, onRoomClosed: () => void) {
   const [players, setPlayers] = createSignal<PlayerInRoom[]>([])
   const [isConnected, setIsConnected] = createSignal(false)
 
@@ -32,7 +32,7 @@ export function useRoomWs(roomId: () => string, onRoomClosed: () => void) {
   onMount(() => {
     const token = getCookie('auth_token')
     if (!token) {
-      console.error('[useRoomWs] No auth token found')
+      console.error('[useGameSessionWs] No auth token found')
       return
     }
 
@@ -53,7 +53,7 @@ export function useRoomWs(roomId: () => string, onRoomClosed: () => void) {
       .connect(wsUrl)
       .then(() => setIsConnected(true))
       .catch((err: unknown) => {
-        console.error('[useRoomWs] connection failed:', err)
+        console.error('[useGameSessionWs] connection failed:', err)
       })
   })
 
