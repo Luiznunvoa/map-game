@@ -10,6 +10,7 @@ import { GameEngine } from '@/game'
 import { useMapData } from '@/hooks/map/useMapData'
 import { useLeaveRoom } from '@/hooks/rooms/use-leave-room'
 import { useGameSessionWs } from '@/hooks/rooms/use-game-session-ws'
+import { useGameTime } from '@/hooks/rooms/use-game-time'
 import type { GameEvent } from '@/types/game'
 import type { MapColorMode } from '@/types/globe'
 
@@ -29,6 +30,8 @@ export function RoomPage() {
     () => params.id,
     () => navigate('/lobby'), // called when host leaves and room_closed is broadcast
   )
+
+  const { date, period, speed, isPaused, play, pause, changeSpeed } = useGameTime()
 
   const mapDataResource = useMapData(() => params.id)
   const [fps, setFps] = createSignal(0)
@@ -84,6 +87,46 @@ export function RoomPage() {
             FPS: {fps()}
           </div>
           <PlayerTable players={players()} />
+        </div>
+
+        {/* Center: Game Clock */}
+        <div class="flex flex-col items-center gap-1 pointer-events-auto mt-2">
+          <div class="bg-gray-900/90 text-white px-4 py-2 rounded border border-gray-700 shadow flex items-center gap-4">
+            <div class="flex flex-col items-center min-w-[100px]">
+              <span class="text-xs text-gray-400 font-bold uppercase tracking-wider">
+                {period() === 0 && 'Manhã'}
+                {period() === 1 && 'Tarde'}
+                {period() === 2 && 'Noite'}
+                {period() === 3 && 'Madrugada'}
+              </span>
+              <span class="font-mono text-lg font-bold">{date()}</span>
+            </div>
+            
+            <div class="flex items-center gap-2 border-l border-gray-700 pl-4">
+              <Show when={isPaused()} fallback={
+                <button onClick={() => pause()} class="px-3 py-1.5 bg-yellow-600/20 text-yellow-500 rounded hover:bg-yellow-600/40 transition-colors font-bold text-sm">
+                  PAUSE
+                </button>
+              }>
+                <button onClick={() => play()} class="px-3 py-1.5 bg-green-600/20 text-green-500 rounded hover:bg-green-600/40 transition-colors font-bold text-sm">
+                  PLAY
+                </button>
+              </Show>
+              
+              <div class="flex items-center gap-1 bg-gray-800 rounded p-1 ml-2">
+                {[1, 2, 3, 4, 5].map((s) => (
+                  <button
+                    class={`w-7 h-7 rounded flex items-center justify-center text-xs font-bold transition-colors ${
+                      speed() === s ? 'bg-blue-600 text-white' : 'text-gray-400 hover:bg-gray-700 hover:text-white'
+                    }`}
+                    onClick={() => changeSpeed(s)}
+                  >
+                    {s}x
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* Right: map mode selector + leave button */}
