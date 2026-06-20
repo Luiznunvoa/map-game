@@ -1,4 +1,5 @@
 import type { CountryState, PlayerState, ProvinceState } from './state'
+import type { PlayerInRoom } from './room'
 
 export interface HttpRequest<TBody = unknown> {
   method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'
@@ -64,6 +65,9 @@ type AppWebSocketEvents = {
     total_pages: number
     rooms: any[]
   }
+  // Room WS events
+  players_update: PlayerInRoom[]
+  room_closed: { reason: string }
 }
 
 export interface IHttpStateService<TState, TId = number | string> {

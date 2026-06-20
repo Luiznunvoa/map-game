@@ -1,13 +1,15 @@
-import { useNavigate,useParams } from '@solidjs/router'
+import { useNavigate, useParams } from '@solidjs/router'
 import { createEffect, createSignal, onCleanup, Show } from 'solid-js'
 
 import { bg } from '@/assets'
 import { Loading } from '@/components/features/loading'
+import { PlayerTable } from '@/components/features/rooms/player-table'
 import { Button } from '@/components/ui/button'
 import { Select } from '@/components/ui/select'
 import { GameEngine } from '@/game'
 import { useMapData } from '@/hooks/map/useMapData'
 import { useLeaveRoom } from '@/hooks/rooms/use-leave-room'
+import { useRoomWs } from '@/hooks/rooms/use-room-ws'
 import type { GameEvent } from '@/types/game'
 import type { MapColorMode } from '@/types/globe'
 
@@ -17,10 +19,16 @@ export function RoomPage() {
   let containerRef!: HTMLDivElement
   let engine: GameEngine | null = null
 
-  const { 
-    mutate: leaveRoom, 
-    resource: leaveRoomResource 
+  const {
+    mutate: leaveRoom,
+    resource: leaveRoomResource,
   } = useLeaveRoom(() => navigate('/lobby'))
+
+  // Per-room WebSocket — tracks connected players and handles room closure
+  const { players } = useRoomWs(
+    () => params.id as string,
+    () => navigate('/lobby'), // called when host leaves and room_closed is broadcast
+  )
 
   const mapDataResource = useMapData(() => params.id)
   const [fps, setFps] = createSignal(0)
@@ -69,13 +77,16 @@ export function RoomPage() {
 
       {/* UI Overlay */}
       <div class="absolute top-0 left-0 right-0 p-4 flex justify-between pointer-events-none z-10">
+        {/* Left: FPS + Player Table */}
         <div class="flex flex-col gap-2 pointer-events-auto">
           <div class="bg-gray-900/90 text-white px-3 py-1 rounded border border-gray-700 font-mono text-sm shadow">
             FPS: {fps()}
           </div>
+          <PlayerTable players={players()} />
         </div>
 
-        <div class="flex gap-3 pointer-events-auto items-center">
+        {/* Right: map mode selector + leave button */}
+        <div class="flex gap-3 pointer-events-auto items-start">
           <Select
             class="bg-gray-900/90 py-1.5 text-sm shadow"
             onChange={(e) => engine?.setColorMode(e.currentTarget.value as MapColorMode)}

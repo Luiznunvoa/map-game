@@ -25,3 +25,10 @@ export type RoomResponse = Room
 export interface LeaveRoomRequest {
   room_id: string
 }
+
+export interface PlayerInRoom {
+  user_id: number
+  name: string
+  role: 'HOST' | 'GUEST' | 'SPECTATOR'
+  joined_at: string
+}
