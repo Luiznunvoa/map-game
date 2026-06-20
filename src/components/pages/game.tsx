@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Select } from '@/components/ui/select'
 import { GameEngine } from '@/game'
 import { useMapData } from '@/hooks/map/useMapData'
+import { useLeaveRoom } from '@/hooks/rooms/use-leave-room'
 import type { GameEvent } from '@/types/game'
 import type { MapColorMode } from '@/types/globe'
 
@@ -15,6 +16,11 @@ export function RoomPage() {
   const navigate = useNavigate()
   let containerRef!: HTMLDivElement
   let engine: GameEngine | null = null
+
+  const { 
+    mutate: leaveRoom, 
+    resource: leaveRoomResource 
+  } = useLeaveRoom(() => navigate('/lobby'))
 
   const mapDataResource = useMapData(() => params.id)
   const [fps, setFps] = createSignal(0)
@@ -83,9 +89,10 @@ export function RoomPage() {
 
           <Button
             class="bg-red-600 hover:bg-red-700 py-1.5 px-4 text-sm shadow"
-            onClick={() => navigate('/lobby')}
+            disabled={leaveRoomResource.loading}
+            onClick={() => leaveRoom({ room_id: params.id as string })}
           >
-            Sair da Sala
+            {leaveRoomResource.loading ? 'Saindo...' : 'Sair da Sala'}
           </Button>
         </div>
       </div>

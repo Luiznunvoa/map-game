@@ -1,5 +1,5 @@
 import type { IRequestClient } from '@/types/network'
-import type { CreateRoomRequest, RoomResponse } from '@/types/room'
+import type { CreateRoomRequest, LeaveRoomRequest, RoomResponse } from '@/types/room'
 
 export class RoomService {
   private http: IRequestClient
@@ -15,5 +15,12 @@ export class RoomService {
       data,
     })
     return response.data
+  }
+
+  public async leaveRoom(params: LeaveRoomRequest): Promise<void> {
+    await this.http.request<void, void>({
+      method: 'POST',
+      url: `/api/rooms/${params.room_id}/leave`,
+    })
   }
 }

@@ -21,3 +21,7 @@ export interface Room {
 }
 
 export type RoomResponse = Room
+
+export interface LeaveRoomRequest {
+  room_id: string
+}
