@@ -14,7 +14,7 @@ import type { GameEvent } from '@/types/game'
 import type { MapColorMode } from '@/types/globe'
 
 export function RoomPage() {
-  const params = useParams()
+  const params: { id: string } = useParams()
   const navigate = useNavigate()
   let containerRef!: HTMLDivElement
   let engine: GameEngine | null = null
@@ -26,7 +26,7 @@ export function RoomPage() {
 
   // Per-room WebSocket — tracks connected players and handles room closure
   const { players } = useRoomWs(
-    () => params.id as string,
+    () => params.id,
     () => navigate('/lobby'), // called when host leaves and room_closed is broadcast
   )
 
@@ -72,6 +72,7 @@ export function RoomPage() {
       style={{ 'background-image': `url('${bg}')` }}
     >
       <Show when={mapDataResource()} fallback={<Loading message="LOADING MAP..." />}>
+        {/* Canvas */}
         <div ref={containerRef} class="absolute inset-0" />
       </Show>
 

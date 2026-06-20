@@ -43,7 +43,9 @@ export class NativeWebSocketClient<
       socket.onmessage = ({ data }) => this.handleMessage(data)
 
       socket.onclose = () => {
-        this.socket = null
+        if (this.socket === socket) {
+          this.socket = null
+        }
         if (!settled) {
           settled = true
           reject(new Error('WebSocket closed before connecting'))

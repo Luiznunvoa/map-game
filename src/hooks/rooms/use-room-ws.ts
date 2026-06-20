@@ -17,6 +17,11 @@ export function useRoomWs(roomId: () => string, onRoomClosed: () => void) {
   const [isConnected, setIsConnected] = createSignal(false)
 
   const handlePlayersUpdate = (data: PlayerInRoom[]) => {
+    if (data.length === 0) {
+      // Se a lista vier vazia, a sala foi deletada do banco (o Host saiu de vez pelo botão)
+      onRoomClosed()
+      return
+    }
     setPlayers(data)
   }
 
