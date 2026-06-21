@@ -17,14 +17,14 @@ export function useGameTime() {
   }
 
   const play = (newSpeed?: number) => {
-    networkAdapter.ws.send('action', {
+    networkAdapter.stateWs.send('action', {
       action: 'play',
       speed: newSpeed ?? speed(),
     })
   }
 
   const pause = () => {
-    networkAdapter.ws.send('action', { action: 'pause' })
+    networkAdapter.stateWs.send('action', { action: 'pause' })
   }
 
   const changeSpeed = (newSpeed: number) => {
@@ -35,11 +35,11 @@ export function useGameTime() {
   }
 
   onMount(() => {
-    networkAdapter.ws.on('game_tick', handleTick)
+    networkAdapter.tickWs.on('game_tick', handleTick)
   })
 
   onCleanup(() => {
-    networkAdapter.ws.off('game_tick', handleTick)
+    networkAdapter.tickWs.off('game_tick', handleTick)
   })
 
   return {

@@ -40,27 +40,34 @@ export function useGameSessionWs(roomId: () => string, onRoomClosed: () => void)
       ? BASE_URL.replace(/^http/, 'ws')
       : 'ws://localhost:3000'
 
-    const wsUrl = `${base}/ws/rooms/${roomId()}?token=${token}`
+    const tickWsUrl = `${base}/ws/rooms/${roomId()}/tick`
+    const stateWsUrl = `${base}/ws/rooms/${roomId()}/state`
 
-    networkAdapter.ws.on('players_update', handlePlayersUpdate)
-    networkAdapter.ws.on('room_closed', handleRoomClosed)
+    networkAdapter.stateWs.on('players_update', handlePlayersUpdate)
+    networkAdapter.stateWs.on('room_closed', handleRoomClosed)
 
-    networkAdapter.ws.onConnect(() => {
+    networkAdapter.stateWs.onConnect(() => {
       setIsConnected(true)
     })
 
-    networkAdapter.ws
-      .connect(wsUrl)
-      .then(() => setIsConnected(true))
+    networkAdapter.stateWs
+      .connect(stateWsUrl)
       .catch((err: unknown) => {
-        console.error('[useGameSessionWs] connection failed:', err)
+        console.error('[useGameSessionWs] state connection failed:', err)
+      })
+
+    networkAdapter.tickWs
+      .connect(tickWsUrl)
+      .catch((err: unknown) => {
+        console.error('[useGameSessionWs] tick connection failed:', err)
       })
   })
 
   onCleanup(() => {
-    networkAdapter.ws.off('players_update', handlePlayersUpdate)
-    networkAdapter.ws.off('room_closed', handleRoomClosed)
-    networkAdapter.ws.disconnect()
+    networkAdapter.stateWs.off('players_update', handlePlayersUpdate)
+    networkAdapter.stateWs.off('room_closed', handleRoomClosed)
+    networkAdapter.stateWs.disconnect()
+    networkAdapter.tickWs.disconnect()
     setIsConnected(false)
   })
 

@@ -6,7 +6,9 @@ import { NativeWebSocketClient } from './ws'
 
 const createNetworkAdapter = (): INetworkAdapter<AppWebSocketEvents> => ({
   http: new AxiosRequestClient(BASE_URL),
-  ws: new NativeWebSocketClient<AppWebSocketEvents>(),
+  lobbyWs: new NativeWebSocketClient<AppWebSocketEvents>(),
+  tickWs: new NativeWebSocketClient<AppWebSocketEvents>(),
+  stateWs: new NativeWebSocketClient<AppWebSocketEvents>(),
 })
 
 export const networkAdapter = createNetworkAdapter()

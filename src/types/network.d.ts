@@ -47,7 +47,9 @@ export interface INetworkAdapter<
   TEvents extends Record<string, unknown> = Record<string, unknown>,
 > {
   http: IRequestClient
-  ws: IWebSocketClient<TEvents>
+  lobbyWs: IWebSocketClient<TEvents>
+  tickWs: IWebSocketClient<TEvents>
+  stateWs: IWebSocketClient<TEvents>
 }
 
 type AppWebSocketEvents = {
@@ -70,6 +72,7 @@ type AppWebSocketEvents = {
   room_closed: { reason: string }
   game_tick: GameTickPayload
   action: { action: 'play' | 'pause'; speed?: number }
+  state_action_ack: { status: string; message: string }
 }
 
 export interface IHttpStateService<TState, TId = number | string> {

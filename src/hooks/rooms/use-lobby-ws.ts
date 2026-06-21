@@ -11,7 +11,7 @@ export function useLobbyWs() {
 
   const fetchRooms = () => {
     setIsRefreshing(true)
-    networkAdapter.ws.send('fetch_rooms', { page: 1, per_page: 20 })
+    networkAdapter.lobbyWs.send('fetch_rooms', { page: 1, per_page: 20 })
   }
 
   const handleRoomsUpdate = (data: { rooms: Room[] } | undefined) => {
@@ -24,17 +24,17 @@ export function useLobbyWs() {
 
   onMount(() => {
     const wsUrl = BASE_URL
-      ? BASE_URL.replace(/^http/, 'ws') + '/ws/rooms'
-      : 'ws://localhost:3000/ws/rooms'
+      ? BASE_URL.replace(/^http/, 'ws') + '/ws/lobby'
+      : 'ws://localhost:3000/ws/lobby'
 
-    networkAdapter.ws.onConnect(() => {
-      networkAdapter.ws.send('subscribe_rooms', { page: 1, per_page: 20 })
+    networkAdapter.lobbyWs.onConnect(() => {
+      networkAdapter.lobbyWs.send('subscribe_rooms', { page: 1, per_page: 20 })
     })
 
-    networkAdapter.ws.on('rooms_update', handleRoomsUpdate)
+    networkAdapter.lobbyWs.on('rooms_update', handleRoomsUpdate)
 
     try {
-      networkAdapter.ws.connect(wsUrl).catch((err: unknown) => {
+      networkAdapter.lobbyWs.connect(wsUrl).catch((err: unknown) => {
         console.error('Failed to connect to lobby WS:', err)
       })
       fetchRooms()
@@ -44,8 +44,8 @@ export function useLobbyWs() {
   })
 
   onCleanup(() => { 
-    networkAdapter.ws.off('rooms_update', handleRoomsUpdate)
-    networkAdapter.ws.disconnect()
+    networkAdapter.lobbyWs.off('rooms_update', handleRoomsUpdate)
+    networkAdapter.lobbyWs.disconnect()
   })
 
   return {

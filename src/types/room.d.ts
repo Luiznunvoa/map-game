@@ -34,7 +34,6 @@ export interface PlayerInRoom {
 }
 
 export interface GameTickPayload {
-  event: string
   date: string
   period: number
   speed: number
