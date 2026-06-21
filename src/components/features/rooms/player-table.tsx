@@ -1,8 +1,8 @@
 import { For } from 'solid-js'
-import type { PlayerInRoom } from '@/types/room'
+import type { LobbyPlayer } from '@/types/room'
 
 interface PlayerTableProps {
-  players: PlayerInRoom[]
+  players: LobbyPlayer[]
 }
 
 const ROLE_LABELS: Record<string, string> = {
@@ -21,7 +21,7 @@ const DEFAULT_THEME = { avatarBg: 'bg-gradient-to-br from-gray-400/30 to-gray-40
 
 export function PlayerTable(props: PlayerTableProps) {
   return (
-    <div class="bg-[#0a0c14]/90 border border-white/10 rounded-xl min-w-[220px] h-[400px] max-w-[280px] backdrop-blur-md overflow-scroll shadow-[0_8px_32px_rgba(0,0,0,0.4)]">
+    <div class="bg-[#0a0c14]/90 border border-white/10 rounded-xl min-w-[220px] h-[400px] max-w-[280px] backdrop-blur-md overflow-scroll shadow-[0_8px_32px_rgba(0,0,0,0.4)] pointer-events-auto">
       {/* Header */}
       <div class="px-3.5 py-2.5 border-b border-white/10 flex items-center gap-2">
         <span class="text-[13px] text-gray-400 font-semibold tracking-[0.05em] uppercase">
@@ -51,18 +51,27 @@ export function PlayerTable(props: PlayerTableProps) {
                   {player.name.charAt(0).toUpperCase()}
                 </div>
 
-                {/* Name + role */}
+                {/* Name + role + country */}
                 <div class="min-w-0 flex-1">
                   <div class="text-slate-100 text-[13px] font-semibold truncate">
                     {player.name}
                   </div>
-                  <div class={`${theme.text} text-[10px] font-medium uppercase tracking-[0.04em]`}>
-                    {ROLE_LABELS[player.role] ?? player.role}
+                  <div class={`${theme.text} text-[10px] font-medium uppercase tracking-[0.04em] flex gap-1 items-center`}>
+                    <span>{ROLE_LABELS[player.role] ?? player.role}</span>
+                    {player.country_id && (
+                      <>
+                        <span>•</span>
+                        <span class="text-white">{player.country_id}</span>
+                      </>
+                    )}
                   </div>
                 </div>
 
-                {/* Online indicator */}
-                <div class="w-[7px] h-[7px] rounded-full bg-green-500 shadow-[0_0_6px_#22c55e] shrink-0" />
+                {/* Ready indicator */}
+                <div 
+                  class={`w-[9px] h-[9px] rounded-full shrink-0 ${player.is_ready ? 'bg-green-500 shadow-[0_0_6px_#22c55e]' : 'bg-gray-500'}`}
+                  title={player.is_ready ? 'Pronto' : 'Aguardando país'}
+                />
               </div>
             )
           }}

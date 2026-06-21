@@ -1,5 +1,5 @@
 import { useNavigate, useParams } from '@solidjs/router'
-import { createEffect, createSignal, onCleanup, Show } from 'solid-js'
+import { createEffect, createSignal, onCleanup, onMount, Show } from 'solid-js'
 
 import { bg } from '@/assets'
 import { Loading } from '@/components/features/loading'
@@ -12,12 +12,15 @@ import type { GameEvent } from '@/types/game'
 import type { MapColorMode } from '@/types/globe'
 import { FpsCounter } from '../features/rooms/fps-counter'
 import { PlayerTable } from '../features/rooms/player-table'
+import type { LobbyPlayer } from '@/types/room'
+import { networkAdapter } from '@/lib/network'
+import { BASE_URL } from '@/env'
 
 export function RoomPage() {
   const params: { id: string } = useParams()
   const [fps, setFps] = createSignal(0)
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [phase, _setphase] = createSignal<'WATING' | 'RUNNING' | 'ENDED'>('WATING')
+  const [phase, setPhase] = createSignal<'WATING' | 'RUNNING' | 'ENDED'>('WATING')
+  const [players, setPlayers] = createSignal<LobbyPlayer[]>([])
 
   const navigate = useNavigate()
 
@@ -36,8 +39,33 @@ export function RoomPage() {
   }
 
   function handleStartGame() {
-    // Start game
+    networkAdapter.lobbyWs.send('start_game', undefined)
   }
+
+  onMount(() => {
+    const wsUrl = BASE_URL
+      ? BASE_URL.replace(/^http/, 'ws') + `/ws/rooms/${params.id}/lobby`
+      : `ws://localhost:3000/ws/rooms/${params.id}/lobby`
+
+    networkAdapter.lobbyWs.on('players_update', (data: LobbyPlayer[]) => {
+      if (Array.isArray(data)) {
+        setPlayers(data)
+      }
+    })
+
+    networkAdapter.lobbyWs.on('game_started', () => {
+      setPhase('RUNNING')
+      networkAdapter.lobbyWs.disconnect()
+    })
+
+    try {
+      networkAdapter.lobbyWs.connect(wsUrl).catch((err: unknown) => {
+        console.error('Failed to connect to room lobby WS:', err)
+      })
+    } catch (e) {
+      // Ignora se já estiver conectado
+    }
+  })
 
   createEffect(() => {
     const data = mapDataResource()
@@ -50,6 +78,9 @@ export function RoomPage() {
         if (event.type === 'NAVIGATE') {
           navigate(event.payload.to)
         }
+        if (event.type === 'SELECT_COUNTRY' && phase() === 'WATING') {
+          networkAdapter.lobbyWs.send('select_country', { country_id: event.payload.country_id })
+        }
       }
 
       engine.onFrame = (currentFps: number) => {
@@ -61,6 +92,7 @@ export function RoomPage() {
   })
 
   onCleanup(async () => {
+    networkAdapter.lobbyWs.disconnect()
     if (engine) {
       engine.stop()
       await engine.unload()
@@ -84,12 +116,13 @@ export function RoomPage() {
           <FpsCounter fps={fps()} />
 
           <Show when={phase() === 'WATING'} fallback={null}>
-            <PlayerTable players={[]} />
+            <PlayerTable players={players()} />
 
             <button
               type='button'
-              class='p-3 bg-green-500 rounded-lg text-white font-medium cursor-pointer'
+              class='p-3 bg-green-500 rounded-lg text-white font-medium cursor-pointer pointer-events-auto hover:bg-green-600 disabled:opacity-50 disabled:cursor-not-allowed'
               onClick={handleStartGame}
+              disabled={players().length === 0 || !players().every(p => p.is_ready)}
             >
               Começar jogo!
             </button>

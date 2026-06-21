@@ -1,5 +1,5 @@
 import type { CountryState, PlayerState, ProvinceState } from './state'
-import type { GameTickPayload, PlayerInRoom, Room } from './room'
+import type { GameTickPayload, PlayerInRoom, Room, LobbyPlayer } from './room'
 
 export interface HttpRequest<TBody = unknown> {
   method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'
@@ -53,8 +53,6 @@ export interface INetworkAdapter<
 }
 
 type AppWebSocketEvents = {
-  // Examples
-  // TODO: Revise that
   'user:state': PlayerState
   'province:state': ProvinceState
   'country:state': CountryState
@@ -68,8 +66,11 @@ type AppWebSocketEvents = {
     rooms: Room[]
   }
   // Room WS events
-  players_update: PlayerInRoom[]
-  room_closed: { reason: string }
+  players_update: LobbyPlayer[]
+  select_country: { country_id: string }
+  start_game: undefined
+  game_started: undefined
+  room_closed: { message: string }
   game_tick: GameTickPayload
   action: { action: 'play' | 'pause'; speed?: number }
   state_action_ack: { status: string; message: string }

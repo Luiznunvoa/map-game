@@ -7,6 +7,7 @@ import {
   ShaderMaterial,
   SphereGeometry,
   Vector3,
+  type IUniform,
 } from 'three'
 
 import ATMOSPHERE_FRAG from '@/shaders/globe.atmosphere.frag.glsl?raw'
@@ -30,7 +31,7 @@ export class Map3D implements Entity {
   private material: ShaderMaterial
   private atmosphereGeometry: SphereGeometry
   private atmosphereMaterial: ShaderMaterial
-  private uniforms: Record<string, any>
+  private uniforms: Record<string, IUniform>
 
   private mapVMin: number
   private mapVMax: number
@@ -68,6 +69,7 @@ export class Map3D implements Entity {
     this.uniforms = {
       u_idTexture: { value: idTexture },
       u_palette: { value: paletteTexture },
+      u_highlight: { value: this.textures.highlightTexture },
       u_paletteSize: { value: maxProvinceId + 1 },
       u_selectedId: { value: 0 },
       u_highlightColor: { value: new Vector3(1.0, 0.85, 0.0) },
@@ -131,6 +133,10 @@ export class Map3D implements Entity {
 
   public selectProvince(id: ProvinceId): void {
     this.uniforms.u_selectedId.value = id
+  }
+
+  public highlightProvinces(provinceIds: Set<ProvinceId> | null): void {
+    this.textures.updateHighlight(provinceIds)
   }
 
   public setColorMode(

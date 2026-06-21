@@ -8,12 +8,14 @@ import { fillPalette, floatRgbToRgbaBytes } from './palette.js'
 export interface ProvinceTextures {
   idTexture: DataTexture
   paletteTexture: DataTexture
+  highlightTexture: DataTexture
   maxProvinceId: number
   mapWidth: number
   mapHeight: number
   idBuffer: Uint16Array
   stats: IdBufferWithStats['stats']
   updatePalette(mode: MapColorMode, customColors?: Record<ProvinceId, NormalizedColor>): void
+  updateHighlight(provinceIds: Set<ProvinceId> | null): void
   dispose(): void
 }
 
@@ -74,6 +76,12 @@ export function buildProvinceTextures(
   paletteTexture.magFilter = NearestFilter
   paletteTexture.needsUpdate = true
 
+  const highlightBytes = new Uint8Array(paletteSize * 4)
+  const highlightTexture = new DataTexture(highlightBytes, paletteSize, 1, RGBAFormat, UnsignedByteType)
+  highlightTexture.minFilter = NearestFilter
+  highlightTexture.magFilter = NearestFilter
+  highlightTexture.needsUpdate = true
+
   function updatePalette(
     mode: MapColorMode,
     customColors?: Record<ProvinceId, NormalizedColor>,
@@ -100,18 +108,34 @@ export function buildProvinceTextures(
     paletteTexture.needsUpdate = true
   }
 
+  function updateHighlight(provinceIds: Set<ProvinceId> | null): void {
+    highlightBytes.fill(0)
+    if (provinceIds) {
+      for (const id of provinceIds) {
+        if (id < paletteSize) {
+          highlightBytes[id * 4] = 255 // R channel
+          highlightBytes[id * 4 + 3] = 255 // Alpha channel
+        }
+      }
+    }
+    highlightTexture.needsUpdate = true
+  }
+
   return {
     idTexture,
     paletteTexture,
+    highlightTexture,
     maxProvinceId,
     mapWidth: width,
     mapHeight: height,
     idBuffer,
     stats,
     updatePalette,
+    updateHighlight,
     dispose() {
       idTexture.dispose()
       paletteTexture.dispose()
+      highlightTexture.dispose()
     },
   }
 }

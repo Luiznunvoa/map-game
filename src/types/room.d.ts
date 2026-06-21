@@ -33,6 +33,15 @@ export interface PlayerInRoom {
   joined_at: string
 }
 
+export interface LobbyPlayer {
+  user_uuid: string
+  name: string
+  role: 'HOST' | 'GUEST'
+  country_id: string | null
+  is_ready: boolean
+  joined_at: string
+}
+
 export interface GameTickPayload {
   date: string
   period: number

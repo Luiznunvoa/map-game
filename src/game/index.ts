@@ -84,6 +84,26 @@ export class GameEngine implements IGameEngine {
 
       if (provinceId > 0) {
         this.map.selectProvince(provinceId)
+        
+        if (this.worldData) {
+          const prov = this.worldData.provinces.find(p => p.id === provinceId)
+          if (prov && prov.owner) {
+            // Highlight all provinces of the same country
+            const ownerProvinces = new Set(
+              this.worldData.provinces
+                .filter(p => p.owner === prov.owner)
+                .map(p => p.id)
+            )
+            this.map.highlightProvinces(ownerProvinces)
+
+            if (this.onEvent) {
+              this.onEvent({ type: 'SELECT_COUNTRY', payload: { country_id: prov.owner } })
+            }
+          } else {
+            // Clear highlight if ocean or unowned province
+            this.map.highlightProvinces(null)
+          }
+        }
       }
     }
   }
