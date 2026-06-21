@@ -4,7 +4,7 @@ import { BASE_URL } from '@/env'
 import { networkAdapter } from '@/lib/network'
 import type { GameTickPayload } from '@/types/room'
 
-export function useGameTime(roomId: string, isActive: () => boolean) {
+export function useGameTime(roomId: string, isActive: () => boolean, onRoomClosed: () => void) {
   const [date, setDate] = createSignal<string>('1836-01-01')
   const [period, setPeriod] = createSignal<number>(0)
   const [speed, setSpeed] = createSignal<number>(2)
@@ -28,7 +28,12 @@ export function useGameTime(roomId: string, isActive: () => boolean) {
       setIsPaused(data.paused)
     }
 
+    const handleRoomClosed = () => {
+      onRoomClosed()
+    }
+
     networkAdapter.tickWs.on('game_tick', handleGameTick)
+    networkAdapter.tickWs.on('room_closed', handleRoomClosed)
 
     try {
       networkAdapter.tickWs.connect(tickWsUrl).catch((err: unknown) => {
@@ -43,6 +48,7 @@ export function useGameTime(roomId: string, isActive: () => boolean) {
 
     onCleanup(() => {
       networkAdapter.tickWs.off('game_tick', handleGameTick)
+      networkAdapter.tickWs.off('room_closed', handleRoomClosed)
       networkAdapter.tickWs.disconnect()
       networkAdapter.stateWs.disconnect()
     })

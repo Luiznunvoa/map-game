@@ -5,6 +5,8 @@ import { bg } from '@/assets'
 import { Loading } from '@/components/features/loading'
 import { Button } from '@/components/ui/button'
 import { Select } from '@/components/ui/select'
+import { getCookie } from '@/lib/utils/cookies'
+import { getJwtPayload } from '@/lib/utils/jwt'
 import { GameEngine } from '@/game'
 import { useMapData } from '@/hooks/map/useMapData'
 import { useLeaveRoom } from '@/hooks/rooms/use-leave-room'
@@ -21,13 +23,37 @@ export function RoomPage() {
   const [fps, setFps] = createSignal(0)
   const [phase, setPhase] = createSignal<'WATING' | 'RUNNING' | 'ENDED'>('WATING')
 
-  const { players, startGame, selectCountry } = useRoomLobby(params.id, () => {
-    setPhase('RUNNING')
-  })
+  const { players, startGame, selectCountry } = useRoomLobby(
+    params.id,
+    () => {
+      setPhase('RUNNING')
+    },
+    () => {
+      alert('A sala foi fechada pelo anfitrião.')
+      navigate('/lobby')
+    },
+    () => {
+      alert('Não foi possível entrar na sala. Ela pode não existir ou já ter começado.')
+      navigate('/lobby')
+    }
+  )
 
-  const gameTime = useGameTime(params.id, () => phase() === 'RUNNING')
+  const gameTime = useGameTime(
+    params.id,
+    () => phase() === 'RUNNING',
+    () => {
+      alert('A sala foi fechada pelo anfitrião.')
+      navigate('/lobby')
+    }
+  )
 
   const navigate = useNavigate()
+
+  const token = getCookie('auth_token')
+  const payload = token ? getJwtPayload(token) : null
+  const userUuid = payload?.sub
+
+  const isHost = () => players().find((p) => p.user_uuid === userUuid)?.role === 'HOST'
 
   let containerRef!: HTMLDivElement
   let engine: GameEngine | null = null
@@ -93,14 +119,16 @@ export function RoomPage() {
           <Show when={phase() === 'WATING'} fallback={null}>
             <PlayerTable players={players()} />
 
-            <button
-              type='button'
-              class='p-3 bg-green-500 rounded-lg text-white font-medium cursor-pointer pointer-events-auto hover:bg-green-600 disabled:opacity-50 disabled:cursor-not-allowed'
-              onClick={startGame}
-              disabled={players().length === 0 || !players().every(p => p.is_ready)}
-            >
-              Começar jogo!
-            </button>
+            <Show when={isHost()}>
+              <button
+                type='button'
+                class='p-3 bg-green-500 rounded-lg text-white font-medium cursor-pointer pointer-events-auto hover:bg-green-600 disabled:opacity-50 disabled:cursor-not-allowed'
+                onClick={startGame}
+                disabled={players().length === 0 || !players().every(p => p.is_ready)}
+              >
+                Começar jogo!
+              </button>
+            </Show>
           </Show>
         </div>
 
@@ -114,6 +142,7 @@ export function RoomPage() {
               play={gameTime.play}
               pause={gameTime.pause}
               changeSpeed={gameTime.changeSpeed}
+              isHost={isHost() ?? false}
             />
 
             <Select

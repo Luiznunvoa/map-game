@@ -4,7 +4,7 @@ import { BASE_URL } from '@/env'
 import { networkAdapter } from '@/lib/network'
 import type { LobbyPlayer } from '@/types/room'
 
-export function useRoomLobby(roomId: string, onGameStarted: () => void) {
+export function useRoomLobby(roomId: string, onGameStarted: () => void, onRoomClosed: () => void, onConnectionError: () => void) {
   const [players, setPlayers] = createSignal<LobbyPlayer[]>([])
 
   const startGame = () => {
@@ -31,20 +31,29 @@ export function useRoomLobby(roomId: string, onGameStarted: () => void) {
       onGameStarted()
     }
 
+    const handleRoomClosed = () => {
+      networkAdapter.lobbyWs.disconnect()
+      onRoomClosed()
+    }
+
     networkAdapter.lobbyWs.on('players_update', handlePlayersUpdate)
     networkAdapter.lobbyWs.on('game_started', handleGameStarted)
+    networkAdapter.lobbyWs.on('room_closed', handleRoomClosed)
 
     try {
       networkAdapter.lobbyWs.connect(wsUrl).catch((err: unknown) => {
         console.error('Failed to connect to room lobby WS:', err)
+        onConnectionError()
       })
     } catch (e) {
-      // Ignora se já estiver conectado
+      console.error(e)
+      onConnectionError()
     }
 
     onCleanup(() => {
       networkAdapter.lobbyWs.off('players_update', handlePlayersUpdate)
       networkAdapter.lobbyWs.off('game_started', handleGameStarted)
+      networkAdapter.lobbyWs.off('room_closed', handleRoomClosed)
       networkAdapter.lobbyWs.disconnect()
     })
   })

@@ -8,6 +8,7 @@ export interface GameClockProps {
   play: (newSpeed?: number) => void;
   pause: () => void;
   changeSpeed: (newSpeed: number) => void;
+  isHost: boolean;
 }
 
 export function GameClock(props: GameClockProps) {
@@ -25,27 +26,30 @@ export function GameClock(props: GameClockProps) {
         </div>
         
         <div class="flex items-center gap-2 border-l border-gray-700 pl-4">
-          <Show when={props.isPaused()} fallback={
-            <button onClick={() => props.pause()} class="px-3 py-1.5 bg-yellow-600/20 text-yellow-500 rounded hover:bg-yellow-600/40 transition-colors font-bold text-sm">
-              PAUSE
-            </button>
-          }>
-            <button onClick={() => props.play()} class="px-3 py-1.5 bg-green-600/20 text-green-500 rounded hover:bg-green-600/40 transition-colors font-bold text-sm">
-              PLAY
-            </button>
+          <Show when={props.isHost}>
+            <Show when={props.isPaused()} fallback={
+              <button onClick={() => props.pause()} class="px-3 py-1.5 bg-yellow-600/20 text-yellow-500 rounded hover:bg-yellow-600/40 transition-colors font-bold text-sm">
+                PAUSE
+              </button>
+            }>
+              <button onClick={() => props.play()} class="px-3 py-1.5 bg-green-600/20 text-green-500 rounded hover:bg-green-600/40 transition-colors font-bold text-sm">
+                PLAY
+              </button>
+            </Show>
           </Show>
           
           <div class="flex items-center gap-1 bg-gray-800 rounded p-1 ml-2">
-            {[1, 2, 3, 4, 5].map((s) => (
-              <button
-                class={`w-7 h-7 rounded flex items-center justify-center text-xs font-bold transition-colors ${
-                  props.speed() === s ? 'bg-blue-600 text-white' : 'text-gray-400 hover:bg-gray-700 hover:text-white'
-                }`}
-                onClick={() => props.changeSpeed(s)}
-              >
-                {s}x
-              </button>
-            ))}
+              {[1, 2, 3, 4, 5].map((s) => (
+                <button
+                  disabled={!props.isHost}
+                  class={`w-7 h-7 rounded flex items-center justify-center text-xs font-bold transition-colors ${
+                    props.speed() === s ? 'bg-blue-600 text-white' : 'text-gray-400'
+                  } ${props.isHost ? 'hover:bg-gray-700 hover:text-white cursor-pointer' : 'cursor-default'}`}
+                  onClick={() => props.changeSpeed(s)}
+                >
+                  {s}x
+                </button>
+              ))}
           </div>
         </div>
       </div>
