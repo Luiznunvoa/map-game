@@ -20,7 +20,7 @@ export function RoomPage() {
   const [phase, _setphase] = createSignal<'WATING' | 'RUNNING' | 'ENDED'>('WATING')
 
   const navigate = useNavigate()
-  
+
   let containerRef!: HTMLDivElement
   let engine: GameEngine | null = null
 
@@ -86,8 +86,8 @@ export function RoomPage() {
           <Show when={phase() === 'WATING'} fallback={null}>
             <PlayerTable players={[]} />
 
-            <button 
-              type='button' 
+            <button
+              type='button'
               class='p-3 bg-green-500 rounded-lg text-white font-medium cursor-pointer'
               onClick={handleStartGame}
             >
@@ -121,7 +121,7 @@ export function RoomPage() {
               <option value="region">Modo Regiões</option>
             </Select>
           </>
-          
+
         </Show>
 
         <Show when={phase() === 'ENDED'} fallback={null}>
@@ -132,13 +132,13 @@ export function RoomPage() {
 
         </Show>
 
-        <Button
-          class="bg-red-600 hover:bg-red-700 py-1.5 px-4 h-fit text-sm shadow"
-          disabled={leaveRoomResource.loading}
-          onClick={() => leaveRoom({ room_id: params.id as string })}
-        >
-          {leaveRoomResource.loading ? 'Saindo...' : 'Sair da Sala'}
-        </Button>
+          <Button
+            class="bg-red-600 hover:bg-red-700 py-1.5 px-4 h-fit text-sm shadow pointer-events-auto"
+            disabled={leaveRoomResource.loading}
+            onClick={() => leaveRoom({ room_id: params.id as string })}
+          >
+            {leaveRoomResource.loading ? 'Saindo...' : 'Sair da Sala'}
+          </Button>
       </div>
     </div>
   )
