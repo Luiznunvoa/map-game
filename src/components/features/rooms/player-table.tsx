@@ -11,135 +11,61 @@ const ROLE_LABELS: Record<string, string> = {
   SPECTATOR: 'Espectador',
 }
 
-const ROLE_COLORS: Record<string, string> = {
-  HOST: '#f59e0b',   // amber
-  GUEST: '#60a5fa',  // blue
-  SPECTATOR: '#9ca3af', // gray
+const ROLE_THEME: Record<string, { avatarBg: string, avatarBorder: string, text: string }> = {
+  HOST: { avatarBg: 'bg-gradient-to-br from-amber-500/30 to-amber-500/10', avatarBorder: 'border-amber-500/50', text: 'text-amber-500' },
+  GUEST: { avatarBg: 'bg-gradient-to-br from-blue-400/30 to-blue-400/10', avatarBorder: 'border-blue-400/50', text: 'text-blue-400' },
+  SPECTATOR: { avatarBg: 'bg-gradient-to-br from-gray-400/30 to-gray-400/10', avatarBorder: 'border-gray-400/50', text: 'text-gray-400' },
 }
+
+const DEFAULT_THEME = { avatarBg: 'bg-gradient-to-br from-gray-400/30 to-gray-400/10', avatarBorder: 'border-gray-400/50', text: 'text-gray-400' }
 
 export function PlayerTable(props: PlayerTableProps) {
   return (
-    <div
-      style={{
-        background: 'rgba(10, 12, 20, 0.88)',
-        border: '1px solid rgba(255,255,255,0.1)',
-        'border-radius': '12px',
-        'min-width': '220px',
-        'max-width': '280px',
-        'backdrop-filter': 'blur(12px)',
-        overflow: 'hidden',
-        'box-shadow': '0 8px 32px rgba(0,0,0,0.4)',
-      }}
-    >
+    <div class="bg-[#0a0c14]/90 border border-white/10 rounded-xl min-w-[220px] h-[400px] max-w-[280px] backdrop-blur-md overflow-scroll shadow-[0_8px_32px_rgba(0,0,0,0.4)]">
       {/* Header */}
-      <div
-        style={{
-          padding: '10px 14px',
-          'border-bottom': '1px solid rgba(255,255,255,0.08)',
-          display: 'flex',
-          'align-items': 'center',
-          gap: '8px',
-        }}
-      >
-        <span style={{ 'font-size': '13px', color: '#9ca3af', 'font-weight': '600', 'letter-spacing': '0.05em', 'text-transform': 'uppercase' }}>
+      <div class="px-3.5 py-2.5 border-b border-white/10 flex items-center gap-2">
+        <span class="text-[13px] text-gray-400 font-semibold tracking-[0.05em] uppercase">
           Jogadores
         </span>
-        <span
-          style={{
-            'margin-left': 'auto',
-            background: 'rgba(96,165,250,0.15)',
-            color: '#60a5fa',
-            'border-radius': '999px',
-            padding: '2px 8px',
-            'font-size': '11px',
-            'font-weight': '700',
-          }}
-        >
+        <span class="ml-auto bg-blue-400/15 text-blue-400 rounded-full px-2 py-0.5 text-[11px] font-bold">
           {props.players.length}
         </span>
       </div>
 
       {/* Player rows */}
-      <div style={{ padding: '6px 0' }}>
+      <div class="py-1.5">
         <For
           each={props.players}
           fallback={
-            <div style={{ padding: '12px 14px', color: '#6b7280', 'font-size': '12px', 'text-align': 'center' }}>
+            <div class="px-3.5 py-3 text-gray-500 text-xs text-center">
               Nenhum jogador conectado
             </div>
           }
         >
-          {(player) => (
-            <div
-              style={{
-                display: 'flex',
-                'align-items': 'center',
-                gap: '10px',
-                padding: '7px 14px',
-                transition: 'background 0.15s',
-              }}
-              class="player-row"
-            >
-              {/* Avatar placeholder */}
-              <div
-                style={{
-                  width: '28px',
-                  height: '28px',
-                  'border-radius': '50%',
-                  background: `linear-gradient(135deg, ${ROLE_COLORS[player.role] ?? '#9ca3af'}44, ${ROLE_COLORS[player.role] ?? '#9ca3af'}22)`,
-                  border: `1.5px solid ${ROLE_COLORS[player.role] ?? '#9ca3af'}88`,
-                  display: 'flex',
-                  'align-items': 'center',
-                  'justify-content': 'center',
-                  'font-size': '12px',
-                  color: ROLE_COLORS[player.role] ?? '#9ca3af',
-                  'font-weight': '700',
-                  'flex-shrink': '0',
-                }}
-              >
-                {player.name.charAt(0).toUpperCase()}
-              </div>
-
-              {/* Name + role */}
-              <div style={{ 'min-width': '0', flex: '1' }}>
-                <div
-                  style={{
-                    color: '#f1f5f9',
-                    'font-size': '13px',
-                    'font-weight': '600',
-                    overflow: 'hidden',
-                    'text-overflow': 'ellipsis',
-                    'white-space': 'nowrap',
-                  }}
-                >
-                  {player.name}
+          {(player) => {
+            const theme = ROLE_THEME[player.role] || DEFAULT_THEME
+            return (
+              <div class="flex items-center gap-2.5 px-3.5 py-[7px] transition-colors duration-150 hover:bg-white/5 player-row">
+                {/* Avatar placeholder */}
+                <div class={`w-7 h-7 rounded-full border-[1.5px] flex items-center justify-center text-xs font-bold shrink-0 ${theme.avatarBg} ${theme.avatarBorder} ${theme.text}`}>
+                  {player.name.charAt(0).toUpperCase()}
                 </div>
-                <div
-                  style={{
-                    color: ROLE_COLORS[player.role] ?? '#9ca3af',
-                    'font-size': '10px',
-                    'font-weight': '500',
-                    'text-transform': 'uppercase',
-                    'letter-spacing': '0.04em',
-                  }}
-                >
-                  {ROLE_LABELS[player.role] ?? player.role}
-                </div>
-              </div>
 
-              {/* Online indicator */}
-              <div
-                style={{
-                  width: '7px',
-                  height: '7px',
-                  'border-radius': '50%',
-                  background: '#22c55e',
-                  'box-shadow': '0 0 6px #22c55e',
-                  'flex-shrink': '0',
-                }}
-              />
-            </div>
-          )}
+                {/* Name + role */}
+                <div class="min-w-0 flex-1">
+                  <div class="text-slate-100 text-[13px] font-semibold truncate">
+                    {player.name}
+                  </div>
+                  <div class={`${theme.text} text-[10px] font-medium uppercase tracking-[0.04em]`}>
+                    {ROLE_LABELS[player.role] ?? player.role}
+                  </div>
+                </div>
+
+                {/* Online indicator */}
+                <div class="w-[7px] h-[7px] rounded-full bg-green-500 shadow-[0_0_6px_#22c55e] shrink-0" />
+              </div>
+            )
+          }}
         </For>
       </div>
     </div>
