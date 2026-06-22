@@ -11,6 +11,7 @@ import type { IView } from '@/types/view'
 export type GameEvent =
   | { type: 'NAVIGATE'; payload: { to: string } }
   | { type: 'SELECT_COUNTRY'; payload: { country_id: string } }
+  | { type: 'SELECT_PROVINCE'; payload: { province_id: number } }
 // | { type: 'MOVE_TROOP'; payload: { troop_id: number, destiny_id: number }}
 
 export type GameEventHandler = (event: GameEvent) => void

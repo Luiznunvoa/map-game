@@ -15,6 +15,7 @@ import type { MapColorMode } from '@/types/globe'
 import { FpsCounter } from '../features/rooms/fps-counter'
 import { PlayerTable } from '../features/rooms/player-table'
 import { GameClock } from '../features/rooms/game-clock'
+import { ProvincePanel } from '../features/rooms/province-panel'
 import { useRoomLobby } from '@/hooks/rooms/use-room-lobby'
 import { useGameTime } from '@/hooks/rooms/use-game-time'
 
@@ -22,6 +23,7 @@ export function RoomPage() {
   const params: { id: string } = useParams()
   const [fps, setFps] = createSignal(0)
   const [phase, setPhase] = createSignal<'WATING' | 'RUNNING' | 'ENDED'>('WATING')
+  const [selectedProvinceId, setSelectedProvinceId] = createSignal<number | null>(null)
 
   const { players, startGame, selectCountry } = useRoomLobby(
     params.id,
@@ -83,6 +85,9 @@ export function RoomPage() {
         if (event.type === 'SELECT_COUNTRY' && phase() === 'WATING') {
           selectCountry(event.payload.country_id)
         }
+        if (event.type === 'SELECT_PROVINCE') {
+          setSelectedProvinceId(event.payload.province_id)
+        }
       }
 
       engine.onFrame = (currentFps: number) => {
@@ -114,7 +119,7 @@ export function RoomPage() {
       {/* UI Overlay */}
       <div class="absolute top-0 left-0 right-0 p-4 flex justify-between pointer-events-none z-10">
         <div class="flex flex-col gap-6 pointer-events-auto">
-          <FpsCounter fps={fps()} />
+          <FpsCounter fps={fps} />
 
           <Show when={phase() === 'WATING'} fallback={null}>
             <PlayerTable players={players()} />
@@ -172,6 +177,17 @@ export function RoomPage() {
             {leaveRoomResource.loading ? 'Saindo...' : 'Sair da Sala'}
           </Button>
       </div>
+
+      {/* Bottom Left Overlay */}
+      <Show when={phase() === 'RUNNING'}>
+        <div class="absolute bottom-0 left-0 p-4 pointer-events-none z-10">
+          <ProvincePanel
+            provinceId={selectedProvinceId()}
+            mapData={mapDataResource()?.mapData}
+            worldData={mapDataResource()?.worldData}
+          />
+        </div>
+      </Show>
     </div>
   )
 }

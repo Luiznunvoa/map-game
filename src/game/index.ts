@@ -85,6 +85,10 @@ export class GameEngine implements IGameEngine {
       if (provinceId > 0) {
         this.map.selectProvince(provinceId)
         
+        if (this.onEvent) {
+          this.onEvent({ type: 'SELECT_PROVINCE', payload: { province_id: provinceId } })
+        }
+
         if (this.worldData) {
           const prov = this.worldData.provinces.find(p => p.id === provinceId)
           if (prov && prov.owner) {
