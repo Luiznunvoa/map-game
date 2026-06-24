@@ -8,11 +8,11 @@ export function useRoomLobby(roomId: string, onGameStarted: () => void, onRoomCl
   const [players, setPlayers] = createSignal<LobbyPlayer[]>([])
 
   const startGame = () => {
-    networkAdapter.lobbyWs.send('start_game', undefined)
+    networkAdapter.roomWs.send('start_game', undefined)
   }
 
   const selectCountry = (countryId: string) => {
-    networkAdapter.lobbyWs.send('select_country', { country_id: countryId })
+    networkAdapter.roomWs.send('select_country', { country_id: countryId })
   }
 
   onMount(() => {
@@ -27,21 +27,21 @@ export function useRoomLobby(roomId: string, onGameStarted: () => void, onRoomCl
     }
 
     const handleGameStarted = () => {
-      networkAdapter.lobbyWs.disconnect()
+      networkAdapter.roomWs.disconnect()
       onGameStarted()
     }
 
     const handleRoomClosed = () => {
-      networkAdapter.lobbyWs.disconnect()
+      networkAdapter.roomWs.disconnect()
       onRoomClosed()
     }
 
-    networkAdapter.lobbyWs.on('players_update', handlePlayersUpdate)
-    networkAdapter.lobbyWs.on('game_started', handleGameStarted)
-    networkAdapter.lobbyWs.on('room_closed', handleRoomClosed)
+    networkAdapter.roomWs.on('players_update', handlePlayersUpdate)
+    networkAdapter.roomWs.on('game_started', handleGameStarted)
+    networkAdapter.roomWs.on('room_closed', handleRoomClosed)
 
     try {
-      networkAdapter.lobbyWs.connect(wsUrl).catch((err: unknown) => {
+      networkAdapter.roomWs.connect(wsUrl).catch((err: unknown) => {
         console.error('Failed to connect to room lobby WS:', err)
         onConnectionError()
       })
@@ -51,10 +51,10 @@ export function useRoomLobby(roomId: string, onGameStarted: () => void, onRoomCl
     }
 
     onCleanup(() => {
-      networkAdapter.lobbyWs.off('players_update', handlePlayersUpdate)
-      networkAdapter.lobbyWs.off('game_started', handleGameStarted)
-      networkAdapter.lobbyWs.off('room_closed', handleRoomClosed)
-      networkAdapter.lobbyWs.disconnect()
+      networkAdapter.roomWs.off('players_update', handlePlayersUpdate)
+      networkAdapter.roomWs.off('game_started', handleGameStarted)
+      networkAdapter.roomWs.off('room_closed', handleRoomClosed)
+      networkAdapter.roomWs.disconnect()
     })
   })
 

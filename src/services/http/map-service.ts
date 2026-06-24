@@ -45,7 +45,82 @@ export class MapService {
 
         // Lê o stream descompactado como buffer binário e decodifica o MessagePack
         const buffer = await decompressedResponse.arrayBuffer()
-        return unpack(new Uint8Array(buffer)) as RawMapData
+        const raw = unpack(new Uint8Array(buffer)) as any // it's FrontendResult in Go
+
+        const foundIds = raw.Provinces ? raw.Provinces.map((p: any) => p.ID) : []
+        const maxProvinceId = foundIds.length > 0 ? Math.max(...foundIds) : 0
+
+        const terrainOverrides: Record<number, string> = {}
+        if (raw.TerrainMap && raw.TerrainType) {
+          Object.entries(raw.TerrainMap).forEach(([provId, terrainIdx]: [string, any]) => {
+            const tType = raw.TerrainType[terrainIdx]
+            if (tType) {
+              terrainOverrides[Number(provId)] = tType.Name
+            }
+          })
+        }
+
+        // Mapear o FrontendResult (backend) para o RawMapData (frontend) esperado pela engine
+        const mapData: RawMapData = {
+          defaultMap: {
+            maxProvinces: raw.Provinces ? raw.Provinces.length : 0,
+            seaStarts: raw.Sea || [],
+          },
+          provinces: {},
+          provinceById: {},
+          adjacencies: raw.Adjacencies || [],
+          terrain: {
+            paletteSize: raw.TerrainType ? Object.keys(raw.TerrainType).length : 0,
+            categories: {},
+            overrides: terrainOverrides,
+          },
+          regions: {},
+          continents: {},
+          provincesBitmapUrl: raw.ProvincesBitmapUrl,
+          terrainBitmapUrl: raw.TerrainBitmapUrl,
+          idBufferUrl: raw.IdBufferUrl,
+          idBufferResult: {
+            idBuffer: new Uint16Array(), // Filled later in useMapData
+            maxProvinceId,
+            orphanPixelCount: 0,
+            foundIds,
+            stats: raw.Stats || {},
+          }
+        }
+
+        if (raw.Provinces) {
+          raw.Provinces.forEach((p: any) => {
+            const def = { id: p.ID, color: p.Color, name: p.Name }
+            mapData.provinceById[p.ID] = def
+            mapData.provinces[p.Color.join(',')] = def
+          })
+        }
+
+        if (raw.TerrainType) {
+          Object.values(raw.TerrainType).forEach((val: any) => {
+            mapData.terrain.categories[val.Name] = {
+              name: val.Name,
+              color: val.Color,
+              isWater: val.IsWater,
+            }
+          })
+        }
+
+        if (raw.Geography && raw.Geography.Continents) {
+          Object.entries(raw.Geography.Continents).forEach(([contName, cont]: [string, any]) => {
+            const contProvinces: number[] = []
+            if (cont.Regions) {
+              Object.entries(cont.Regions).forEach(([regName, reg]: [string, any]) => {
+                const regProvinces = reg.Provinces || []
+                mapData.regions[regName] = regProvinces
+                contProvinces.push(...regProvinces)
+              })
+            }
+            mapData.continents[contName] = contProvinces
+          })
+        }
+
+        return mapData
       })().catch((e) => {
         this.mapDataPromise = null // Invalida o cache em caso de erro
         throw e
@@ -95,19 +170,17 @@ export class MapService {
   /**
    * Retorna os dados dos países do jogo
    */
-  public fetchCountries(roomId: string): Promise<CountryData[]> {
+  public async fetchCountries(roomId: string): Promise<CountryData[]> {
     this.checkRoomId(roomId)
     if (!this.countriesPromise) {
-      this.countriesPromise = this.http
-        .request<void, CountryData[]>({
-          method: 'GET',
-          url: `/api/rooms/${roomId}/map/countries.json`,
-        })
-        .then((res) => res.data)
-        .catch((e) => {
-          this.countriesPromise = null
-          throw e
-        })
+      this.countriesPromise = (async () => {
+        await this.fetchParsedMapData(roomId)
+        // No countries until game logic provides them
+        return []
+      })().catch((e) => {
+        this.countriesPromise = null
+        throw e
+      })
     }
     return this.countriesPromise
   }
@@ -115,19 +188,28 @@ export class MapService {
   /**
    * Retorna as definições base de todas as províncias
    */
-  public fetchDefinitions(roomId: string): Promise<ProvinceData[]> {
+  public async fetchDefinitions(roomId: string): Promise<ProvinceData[]> {
     this.checkRoomId(roomId)
     if (!this.definitionsPromise) {
-      this.definitionsPromise = this.http
-        .request<void, ProvinceData[]>({
-          method: 'GET',
-          url: `/api/rooms/${roomId}/map/definitions.json`,
-        })
-        .then((res) => res.data)
-        .catch((e) => {
-          this.definitionsPromise = null
-          throw e
-        })
+      this.definitionsPromise = (async () => {
+        const mapData = await this.fetchParsedMapData(roomId)
+        const defs: ProvinceData[] = []
+        
+        for (const prov of Object.values(mapData.provinceById)) {
+          defs.push({
+            id: prov.id,
+            color: prov.color,
+            cores: [],
+            owner: 'NONE',
+            controller: null,
+            population: 1000
+          })
+        }
+        return defs
+      })().catch((e) => {
+        this.definitionsPromise = null
+        throw e
+      })
     }
     return this.definitionsPromise
   }

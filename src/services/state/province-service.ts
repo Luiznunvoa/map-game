@@ -9,12 +9,12 @@ export class ProvinceService implements IHttpStateService<ProvinceState, number>
   }
 
   public onStateChange(handler: (data: ProvinceState) => void): () => void {
-    this.adapter.ws.on('province:state', handler)
-    return () => this.adapter.ws.off('province:state', handler)
+    this.adapter.stateWs.on('province:state', handler)
+    return () => this.adapter.stateWs.off('province:state', handler)
   }
 
   public sendStateUpdate(data: ProvinceState): void {
-    this.adapter.ws.send('province:state', data)
+    this.adapter.stateWs.send('province:state', data)
   }
 
   public async fetch(provinceId: number): Promise<ProvinceState> {

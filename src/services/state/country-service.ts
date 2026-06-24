@@ -9,12 +9,12 @@ export class CountryService implements IHttpStateService<CountryState, string> {
   }
 
   public onStateChange(handler: (data: CountryState) => void): () => void {
-    this.adapter.ws.on('country:state', handler)
-    return () => this.adapter.ws.off('country:state', handler)
+    this.adapter.stateWs.on('country:state', handler)
+    return () => this.adapter.stateWs.off('country:state', handler)
   }
 
   public sendStateUpdate(data: CountryState): void {
-    this.adapter.ws.send('country:state', data)
+    this.adapter.stateWs.send('country:state', data)
   }
 
   public async fetch(tag: string): Promise<CountryState> {

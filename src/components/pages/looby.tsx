@@ -7,12 +7,12 @@ import { RoomList } from '@/components/features/rooms/room-list'
 import { Button } from '@/components/ui/button'
 import { useLogout } from '@/hooks/auth/useAuthMutations'
 import { useCreateRoom } from '@/hooks/rooms/useRoomMutations'
-import { useLobbyWs } from '@/hooks/rooms/use-lobby-ws'
+import { useLobby } from '@/hooks/rooms/use-lobby'
 
 export function LobbyPage() {
   const navigate = useNavigate()
   const [showCreateModal, setShowCreateModal] = createSignal(false)
-  const { rooms, isLoading, isRefreshing, fetchRooms } = useLobbyWs()
+  const { rooms, isLoading, isRefreshing, fetchRooms, page, setPage, totalPages } = useLobby()
   const { mutate: logoutMutate } = useLogout()
 
   const { mutate: createRoomMutate, resource: createRoomResource } = useCreateRoom((roomId) => {
@@ -46,6 +46,24 @@ export function LobbyPage() {
           isLoading={isLoading()}
           onJoinRoom={(id) => navigate(`/room/${id}`)}
         />
+
+        <Show when={totalPages() > 1}>
+          <div class="flex justify-center items-center mt-6 gap-4">
+            <Button
+              disabled={page() <= 1 || isLoading()}
+              onClick={() => setPage(p => p - 1)}
+            >
+              Anterior
+            </Button>
+            <span>Página {page()} de {totalPages()}</span>
+            <Button
+              disabled={page() >= totalPages() || isLoading()}
+              onClick={() => setPage(p => p + 1)}
+            >
+              Próxima
+            </Button>
+          </div>
+        </Show>
       </div>
 
       <CreateRoomModal

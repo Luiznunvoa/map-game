@@ -1,6 +1,7 @@
 import { createResource, type Resource } from 'solid-js'
 
 import { mapService } from '@/services/http/map-service'
+import { networkAdapter } from '@/lib/network'
 import type { RichMapData, WorldData } from '@/types/data'
 
 export const fetchMapAssets = async (
@@ -13,6 +14,15 @@ export const fetchMapAssets = async (
     mapService.fetchMapImage(`/api/rooms/${roomId}/map/provinces.png`),
   ])
 
+  // Download the id_buffer.bin separately
+  const idBufferRes = await networkAdapter.http.request<void, Blob>({
+    method: 'GET',
+    url: `/api/rooms/${roomId}/map/id_buffer.bin`,
+    responseType: 'blob',
+  })
+  const bufferArray = await idBufferRes.data.arrayBuffer()
+  const idBuffer = new Uint16Array(bufferArray)
+
   return {
     worldData: {
       countries,
@@ -23,7 +33,7 @@ export const fetchMapAssets = async (
       provincesBitmap,
       idBufferResult: {
         ...rawMapData.idBufferResult,
-        idBuffer: new Uint16Array(rawMapData.idBufferResult.idBuffer.slice().buffer),
+        idBuffer: idBuffer,
       },
     },
   }

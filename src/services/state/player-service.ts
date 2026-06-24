@@ -9,12 +9,12 @@ export class PlayerService implements IHttpStateService<PlayerState, number> {
   }
 
   public onStateChange(handler: (data: PlayerState) => void): () => void {
-    this.adapter.ws.on('user:state', handler)
-    return () => this.adapter.ws.off('user:state', handler)
+    this.adapter.stateWs.on('user:state', handler)
+    return () => this.adapter.stateWs.off('user:state', handler)
   }
 
   public sendStateUpdate(data: PlayerState): void {
-    this.adapter.ws.send('user:state', data)
+    this.adapter.stateWs.send('user:state', data)
   }
 
   public async fetch(userId: number): Promise<PlayerState> {

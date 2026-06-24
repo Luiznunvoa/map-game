@@ -47,7 +47,7 @@ export interface INetworkAdapter<
   TEvents extends Record<string, unknown> = Record<string, unknown>,
 > {
   http: IRequestClient
-  lobbyWs: IWebSocketClient<TEvents>
+  roomWs: IWebSocketClient<TEvents>
   tickWs: IWebSocketClient<TEvents>
   stateWs: IWebSocketClient<TEvents>
 }
@@ -56,15 +56,6 @@ type AppWebSocketEvents = {
   'user:state': PlayerState
   'province:state': ProvinceState
   'country:state': CountryState
-  subscribe_rooms: { page: number; per_page: number }
-  fetch_rooms: { page: number; per_page: number }
-  rooms_update: {
-    page: number
-    per_page: number
-    total_items: number
-    total_pages: number
-    rooms: Room[]
-  }
   // Room WS events
   players_update: LobbyPlayer[]
   select_country: { country_id: string }

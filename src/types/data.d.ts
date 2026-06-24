@@ -113,6 +113,7 @@ export interface RawMapData {
   continents: ContinentMap
   provincesBitmapUrl: string // Used to fetch the raw image
   terrainBitmapUrl?: string
+  idBufferUrl: string
   idBufferResult: IdBufferWithStats
 }
 
