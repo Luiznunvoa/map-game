@@ -1,6 +1,5 @@
 uniform sampler2D u_idTexture;
 uniform sampler2D u_palette;
-uniform sampler2D u_highlight;
 uniform float     u_paletteSize;
 uniform int       u_selectedId;
 uniform vec3      u_highlightColor;
@@ -97,15 +96,6 @@ void main() {
         }
       }
     }
-  }
-
-  // Lookup da highlight mask
-  float isCountryHighlighted = texture(u_highlight, vec2(paletteU, 0.5)).r;
-  
-  if (isCountryHighlighted > 0.5) {
-    float pulse = 0.5 + 0.5 * sin(u_time * 2.0);
-    // Make the base color brighter from afar
-    color = mix(color, vec3(1.0, 1.0, 1.0), 0.15 + 0.1 * pulse);
   }
 
   // Highlight de seleção (província específica)

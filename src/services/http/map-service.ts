@@ -68,7 +68,12 @@ export class MapService {
           },
           provinces: {},
           provinceById: {},
-          adjacencies: raw.Adjacencies || [],
+          adjacencies: raw.Adjacencies ? raw.Adjacencies.map((a: any) => ({
+            from: a.From,
+            to: a.To,
+            type: (a.Type === 0 ? 'land' : a.Type === 4 ? 'impassable' : 'sea'),
+            through: a.Through
+          })) : [],
           terrain: {
             paletteSize: raw.TerrainType ? Object.keys(raw.TerrainType).length : 0,
             categories: {},
@@ -84,7 +89,18 @@ export class MapService {
             maxProvinceId,
             orphanPixelCount: 0,
             foundIds,
-            stats: raw.Stats || {},
+            stats: raw.Stats ? Object.fromEntries(
+              Object.entries(raw.Stats).map(([k, v]: [string, any]) => [k, {
+                id: Number(k),
+                pixelCount: Number(v.PixelCount),
+                sumX: Number(v.SumX),
+                sumY: Number(v.SumY),
+                minX: Number(v.MinX),
+                minY: Number(v.MinY),
+                maxX: Number(v.MaxX),
+                maxY: Number(v.MaxY),
+              }])
+            ) : {},
           }
         }
 
