@@ -1,4 +1,4 @@
-import { DataTexture, NearestFilter, RGBAFormat, UnsignedByteType } from 'three'
+import { DataTexture, NearestFilter, RGBAFormat, UnsignedByteType, NoColorSpace, SRGBColorSpace } from 'three'
 
 import type { IdBufferWithStats, NormalizedColor, ProvinceId } from '@/types/data'
 import type { GlobeMapInput, MapColorMode } from '@/types/globe'
@@ -42,9 +42,15 @@ export function buildProvinceTextures(
     rgbaIds[i * 4 + 3] = 255
   }
 
+  console.log(`[textures.ts] width=${width} height=${height} idBuffer.length=${idBuffer.length}`);
+  if (idBuffer.length > 0) {
+    console.log(`[textures.ts] first few IDs:`, idBuffer[0], idBuffer[1000], idBuffer[50000]);
+  }
+
   const idTexture = new DataTexture(rgbaIds, width, height, RGBAFormat, UnsignedByteType)
   idTexture.minFilter = NearestFilter
   idTexture.magFilter = NearestFilter
+  idTexture.colorSpace = NoColorSpace
   idTexture.flipY = false
   idTexture.needsUpdate = true
   const paletteSize = maxProvinceId + 1
@@ -72,6 +78,7 @@ export function buildProvinceTextures(
   const paletteTexture = new DataTexture(paletteBytes, paletteSize, 1, RGBAFormat, UnsignedByteType)
   paletteTexture.minFilter = NearestFilter
   paletteTexture.magFilter = NearestFilter
+  paletteTexture.colorSpace = SRGBColorSpace
   paletteTexture.needsUpdate = true
 
   function updatePalette(
