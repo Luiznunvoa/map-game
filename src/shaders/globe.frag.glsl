@@ -1,5 +1,6 @@
 uniform sampler2D u_idTexture;
 uniform sampler2D u_palette;
+uniform float     u_paletteSize;
 uniform int       u_selectedId;
 uniform vec3      u_highlightColor;
 uniform vec3      u_lightDir;
@@ -16,12 +17,11 @@ out vec4 fragColor;
 
 int getProvinceId(vec2 uv) {
   vec4 raw = texture(u_idTexture, uv);
-  return int(round(raw.r * 255.0)) + int(round(raw.g * 255.0)) * 256;
+  return int(raw.r * 255.0 + 0.5) + int(raw.g * 255.0 + 0.5) * 256;
 }
 
 bool isSeaId(int id) {
-  int paletteSize = textureSize(u_palette, 0).x;
-  float paletteU = (float(id) + 0.5) / float(paletteSize);
+  float paletteU = (float(id) + 0.5) / u_paletteSize;
   return texture(u_palette, vec2(paletteU, 0.5)).a < 0.5;
 }
 
@@ -44,8 +44,7 @@ void main() {
 
   // Se estiver nos polos (fora da faixa do mapa), renderiza oceano puro
   if (vUv.y < u_vMin || vUv.y > u_vMax) {
-    int paletteSize = textureSize(u_palette, 0).x;
-    float paletteU = 0.5 / float(paletteSize); // ID 0 (Oceano)
+    float paletteU = 0.5 / u_paletteSize; // ID 0 (Oceano)
     vec3 color = texture(u_palette, vec2(paletteU, 0.5)).rgb;
     
     vec3 N = normalize(vNormal);
@@ -64,8 +63,7 @@ void main() {
   int id = getProvinceId(uv);
 
   // Lookup da paleta
-  int paletteSize = textureSize(u_palette, 0).x;
-  float paletteU = (float(id) + 0.5) / float(paletteSize);
+  float paletteU = (float(id) + 0.5) / u_paletteSize;
   vec4 paletteSample = texture(u_palette, vec2(paletteU, 0.5));
   vec3 color = paletteSample.rgb;
   bool isSeaProvince = (paletteSample.a < 0.5);
@@ -91,7 +89,7 @@ void main() {
       } else if (!isSeaProvince && !neighborIsSea) {
         isLandBorder = true;
         
-        float nU = (float(neighborId) + 0.5) / float(paletteSize);
+        float nU = (float(neighborId) + 0.5) / u_paletteSize;
         vec3 nColor = texture(u_palette, vec2(nU, 0.5)).rgb;
         if (distance(nColor, color) > 0.01) {
           isStateBorder = true;
