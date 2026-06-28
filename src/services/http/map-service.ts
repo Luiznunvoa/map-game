@@ -193,11 +193,18 @@ export class MapService {
     this.checkRoomId(roomId)
     if (!this.savegamePromise) {
       this.savegamePromise = (async () => {
-        const res = await this.http.request<void, any>({
+        const res = await this.http.request<void, Blob>({
           method: 'GET',
           url: `/api/map/savegame`,
+          responseType: 'blob',
         })
-        return res.data
+        
+        const ds = new DecompressionStream('gzip')
+        const decompressedStream = res.data.stream().pipeThrough(ds)
+        const decompressedResponse = new Response(decompressedStream)
+        
+        const buffer = await decompressedResponse.arrayBuffer()
+        return unpack(new Uint8Array(buffer))
       })().catch((e) => {
         this.savegamePromise = null
         throw e
