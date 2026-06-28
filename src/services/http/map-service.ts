@@ -12,6 +12,7 @@ export class MapService {
   private mapDataPromise: Promise<RawMapData> | null = null
   private countriesPromise: Promise<CountryData[]> | null = null
   private definitionsPromise: Promise<ProvinceData[]> | null = null
+  private savegamePromise: Promise<any> | null = null
   private imageCache: Record<string, Promise<ImageBitmap>> = {}
 
   private checkRoomId(roomId: string) {
@@ -51,11 +52,11 @@ export class MapService {
         const maxProvinceId = foundIds.length > 0 ? Math.max(...foundIds) : 0
 
         const terrainOverrides: Record<number, string> = {}
-        if (raw.TerrainMap && raw.TerrainType) {
-          Object.entries(raw.TerrainMap).forEach(([provId, terrainIdx]: [string, any]) => {
-            const tType = raw.TerrainType[terrainIdx]
+        if (raw.Provinces && raw.TerrainTypes) {
+          raw.Provinces.forEach((p: any) => {
+            const tType = raw.TerrainTypes[p.TerrainIdx]
             if (tType) {
-              terrainOverrides[Number(provId)] = tType.Name
+              terrainOverrides[p.ID] = tType.Name
             }
           })
         }
@@ -75,7 +76,7 @@ export class MapService {
             through: a.Through
           })) : [],
           terrain: {
-            paletteSize: raw.TerrainType ? Object.keys(raw.TerrainType).length : 0,
+            paletteSize: raw.TerrainTypes ? raw.TerrainTypes.length : 0,
             categories: {},
             overrides: terrainOverrides,
           },
@@ -112,8 +113,8 @@ export class MapService {
           })
         }
 
-        if (raw.TerrainType) {
-          Object.values(raw.TerrainType).forEach((val: any) => {
+        if (raw.TerrainTypes) {
+          raw.TerrainTypes.forEach((val: any) => {
             mapData.terrain.categories[val.Name] = {
               name: val.Name,
               color: val.Color,
@@ -186,15 +187,52 @@ export class MapService {
   }
 
   /**
+   * Busca os dados do savegame (estado político e econômico)
+   */
+  public async fetchSavegame(roomId: string): Promise<any> {
+    this.checkRoomId(roomId)
+    if (!this.savegamePromise) {
+      this.savegamePromise = (async () => {
+        const res = await this.http.request<void, any>({
+          method: 'GET',
+          url: `/api/map/savegame`,
+        })
+        return res.data
+      })().catch((e) => {
+        this.savegamePromise = null
+        throw e
+      })
+    }
+    return this.savegamePromise
+  }
+
+  /**
    * Retorna os dados dos países do jogo
    */
   public async fetchCountries(roomId: string): Promise<CountryData[]> {
     this.checkRoomId(roomId)
     if (!this.countriesPromise) {
       this.countriesPromise = (async () => {
-        await this.fetchParsedMapData(roomId)
-        // No countries until game logic provides them
-        return []
+        const savegame = await this.fetchSavegame(roomId)
+        const countries: CountryData[] = []
+        
+        if (savegame.countries) {
+          for (const [tag, country] of Object.entries<any>(savegame.countries)) {
+            const hex = country.color.replace('#', '')
+            let r = 0, g = 0, b = 0
+            if (hex.length === 6) {
+              r = parseInt(hex.substring(0, 2), 16) / 255
+              g = parseInt(hex.substring(2, 4), 16) / 255
+              b = parseInt(hex.substring(4, 6), 16) / 255
+            }
+            countries.push({
+              tag: tag,
+              color: [r, g, b],
+              money: 1000
+            })
+          }
+        }
+        return countries
       })().catch((e) => {
         this.countriesPromise = null
         throw e
@@ -210,16 +248,20 @@ export class MapService {
     this.checkRoomId(roomId)
     if (!this.definitionsPromise) {
       this.definitionsPromise = (async () => {
-        const mapData = await this.fetchParsedMapData(roomId)
+        const [mapData, savegame] = await Promise.all([
+          this.fetchParsedMapData(roomId),
+          this.fetchSavegame(roomId)
+        ])
         const defs: ProvinceData[] = []
         
         for (const prov of Object.values(mapData.provinceById)) {
+          const provState = savegame.provinces && savegame.provinces[prov.id]
           defs.push({
             id: prov.id,
             color: prov.color,
             cores: [],
-            owner: 'NONE',
-            controller: null,
+            owner: provState?.owner || 'NONE',
+            controller: provState?.controller || null,
             population: 1000
           })
         }
@@ -240,6 +282,7 @@ export class MapService {
     this.mapDataPromise = null
     this.countriesPromise = null
     this.definitionsPromise = null
+    this.savegamePromise = null
     this.imageCache = {}
   }
 }
