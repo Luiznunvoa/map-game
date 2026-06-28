@@ -26,7 +26,7 @@ export const AuthProvider: ParentComponent = (props) => {
     const path = location.pathname
 
     if (isAuth && path === '/') {
-      navigate('/lobby', { replace: true })
+      navigate('/game', { replace: true })
     } else if (!isAuth && path !== '/') {
       navigate('/', { replace: true })
     }
@@ -38,7 +38,7 @@ export const AuthProvider: ParentComponent = (props) => {
       setCookie('user_email', email)
     }
     setIsAuthenticated(true)
-    navigate('/lobby', { replace: true })
+    navigate('/game', { replace: true })
   }
 
   const logout = () => {

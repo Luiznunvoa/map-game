@@ -35,7 +35,7 @@ export class MapService {
       this.mapDataPromise = (async () => {
         const res = await this.http.request<void, Blob>({
           method: 'GET',
-          url: `/api/rooms/${roomId}/map`,
+          url: `/api/map`,
           responseType: 'blob',
         })
 
@@ -135,6 +135,8 @@ export class MapService {
             mapData.continents[contName] = contProvinces
           })
         }
+
+        console.log(mapData);
 
         return mapData
       })().catch((e) => {

@@ -1,4 +1,4 @@
-import { useNavigate, useParams } from '@solidjs/router'
+import { useNavigate } from '@solidjs/router'
 import { createEffect, createSignal, onCleanup, Show } from 'solid-js'
 
 import { bg } from '@/assets'
@@ -7,27 +7,22 @@ import { Button } from '@/components/ui/button'
 import { Select } from '@/components/ui/select'
 import { GameEngine } from '@/game'
 import { useMapData } from '@/hooks/map/useMapData'
-import { useLeaveRoom } from '@/hooks/rooms/use-leave-room'
+import { useAuth } from '@/components/providers/AuthProvider'
 import type { GameEvent } from '@/types/game'
 import type { MapColorMode } from '@/types/globe'
 import { FpsCounter } from '../features/rooms/fps-counter'
 import { ProvincePanel } from '../features/rooms/province-panel'
 
 export function RoomPage() {
-  const params: { id: string } = useParams()
   const [fps, setFps] = createSignal(0)
   const [selectedProvinceId, setSelectedProvinceId] = createSignal<number | null>(null)
   const navigate = useNavigate()
+  const { logout } = useAuth()
 
   let containerRef!: HTMLDivElement
   let engine: GameEngine | null = null
 
-  const {
-    mutate: leaveRoom,
-    resource: leaveRoomResource,
-  } = useLeaveRoom(() => navigate('/lobby'))
-
-  const mapDataResource = useMapData(() => params.id)
+  const mapDataResource = useMapData()
 
   function handleFrame(fps: number) {
     setFps(fps)
@@ -36,7 +31,7 @@ export function RoomPage() {
   createEffect(() => {
     const data = mapDataResource()
     if (data && containerRef && !engine) {
-      console.log(`Entrando na sala: ${params.id}`)
+      console.log("Entrando no mapa do jogo")
 
       engine = new GameEngine(containerRef, data.worldData, data.mapData)
 
@@ -93,10 +88,9 @@ export function RoomPage() {
         </div>
         <Button
           class="bg-red-600 hover:bg-red-700 py-1.5 px-4 h-fit text-sm shadow pointer-events-auto"
-          disabled={leaveRoomResource.loading}
-          onClick={() => leaveRoom({ room_id: params.id as string })}
+          onClick={() => logout()}
         >
-          {leaveRoomResource.loading ? 'Saindo...' : 'Sair da Sala'}
+          Sair
         </Button>
       </div>
 

@@ -4,24 +4,37 @@ import { mapService } from '@/services/http/map-service'
 import { networkAdapter } from '@/lib/network'
 import type { RichMapData, WorldData } from '@/types/data'
 
-export const fetchMapAssets = async (
-  roomId: string,
-): Promise<{ worldData: WorldData; mapData: RichMapData }> => {
+export const fetchMapAssets = async (): Promise<{ worldData: WorldData; mapData: RichMapData }> => {
   const [countries, provinces, rawMapData, provincesBitmap] = await Promise.all([
-    mapService.fetchCountries(roomId),
-    mapService.fetchDefinitions(roomId),
-    mapService.fetchParsedMapData(roomId),
-    mapService.fetchMapImage(`/api/rooms/${roomId}/map/provinces.png`),
+    mapService.fetchCountries(""),
+    mapService.fetchDefinitions(""),
+    mapService.fetchParsedMapData(""),
+    mapService.fetchMapImage(`/api/map/provinces.png`),
   ])
 
   // Download the id_buffer.bin separately
   const idBufferRes = await networkAdapter.http.request<void, Blob>({
     method: 'GET',
-    url: `/api/rooms/${roomId}/map/id_buffer.bin`,
+    url: `/api/map/id_buffer.bin`,
     responseType: 'blob',
   })
   const bufferArray = await idBufferRes.data.arrayBuffer()
-  const idBuffer = new Uint16Array(bufferArray)
+  
+  // Decodifica o RLE Buffer (4 bytes block: uint16 count, uint16 id - Little Endian)
+  const expectedSize = provincesBitmap.width * provincesBitmap.height
+  const idBuffer = new Uint16Array(expectedSize)
+  const dataview = new DataView(bufferArray)
+  
+  let denseIndex = 0
+  for (let i = 0; i < dataview.byteLength; i += 4) {
+    const count = dataview.getUint16(i, true)
+    const id = dataview.getUint16(i + 2, true)
+    for (let c = 0; c < count; c++) {
+      if (denseIndex < expectedSize) {
+        idBuffer[denseIndex++] = id
+      }
+    }
+  }
 
   return {
     worldData: {
@@ -39,9 +52,7 @@ export const fetchMapAssets = async (
   }
 }
 
-export function useMapData(
-  roomId: () => string | undefined,
-): Resource<{ worldData: WorldData; mapData: RichMapData }> {
-  const [data] = createResource(roomId, fetchMapAssets)
+export function useMapData(): Resource<{ worldData: WorldData; mapData: RichMapData }> {
+  const [data] = createResource(fetchMapAssets)
   return data
 }
