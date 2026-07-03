@@ -36,6 +36,8 @@ export interface IGameEngine extends IView {
   stop(): void
   setColorMode(viewName: MapColorMode): void
   generateEntityId(): number
+  getCameraPosition(): { radius: number; theta: number; phi: number }
+  setCameraPosition(radius: number, theta: number, phi: number): void
 }
 
 export type GameConstructor<T> = new (...args: unknown[]) => T

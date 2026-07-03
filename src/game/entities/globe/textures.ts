@@ -1,4 +1,4 @@
-import { DataTexture, NearestFilter, RGBAFormat, UnsignedByteType } from 'three'
+import { DataTexture, NearestFilter, LinearFilter, RGBAFormat, UnsignedByteType } from 'three'
 
 import type { IdBufferWithStats, NormalizedColor, ProvinceId } from '@/types/data'
 import type { GlobeMapInput, MapColorMode } from '@/types/globe'
@@ -8,6 +8,7 @@ import { fillPalette, floatRgbToRgbaBytes } from './palette.js'
 export interface ProvinceTextures {
   idTexture: DataTexture
   paletteTexture: DataTexture
+  riverTexture: DataTexture | null
   maxProvinceId: number
   mapWidth: number
   mapHeight: number
@@ -23,6 +24,7 @@ export function buildProvinceTextures(
 ): ProvinceTextures {
   const {
     provincesBitmap,
+    riversBitmap,
     provinceById,
     defaultMap,
     terrain,
@@ -100,9 +102,25 @@ export function buildProvinceTextures(
     paletteTexture.needsUpdate = true
   }
 
+  // Cria a textura RGBA do overlay de rios a partir do ImageBitmap
+  let riverTexture: DataTexture | null = null
+  if (riversBitmap) {
+    const rCanvas = new OffscreenCanvas(riversBitmap.width, riversBitmap.height)
+    const rCtx = rCanvas.getContext('2d') as OffscreenCanvasRenderingContext2D
+    rCtx.drawImage(riversBitmap, 0, 0)
+    const rImageData = rCtx.getImageData(0, 0, riversBitmap.width, riversBitmap.height)
+    const rData = new Uint8Array(rImageData.data.buffer)
+    riverTexture = new DataTexture(rData, riversBitmap.width, riversBitmap.height, RGBAFormat, UnsignedByteType)
+    riverTexture.minFilter = LinearFilter
+    riverTexture.magFilter = LinearFilter
+    riverTexture.flipY = false
+    riverTexture.needsUpdate = true
+  }
+
   return {
     idTexture,
     paletteTexture,
+    riverTexture,
     maxProvinceId,
     mapWidth: width,
     mapHeight: height,
@@ -112,6 +130,7 @@ export function buildProvinceTextures(
     dispose() {
       idTexture.dispose()
       paletteTexture.dispose()
+      riverTexture?.dispose()
     },
   }
 }

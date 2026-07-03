@@ -84,6 +84,7 @@ export class MapService {
           continents: {},
           provincesBitmapUrl: raw.ProvincesBitmapUrl,
           terrainBitmapUrl: raw.TerrainBitmapUrl,
+          riversBitmapUrl: raw.RiversBitmapUrl,
           idBufferUrl: raw.IdBufferUrl,
           idBufferResult: {
             idBuffer: new Uint16Array(), // Filled later in useMapData

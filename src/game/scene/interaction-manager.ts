@@ -180,6 +180,16 @@ export class InteractionManager {
     this.zoomDelta = 0
   }
 
+  public getCameraState() {
+    return { radius: this.radius, theta: this.theta, phi: this.phi }
+  }
+
+  public setCameraState(radius: number, theta: number, phi: number) {
+    this.radius = radius
+    this.theta = theta
+    this.phi = phi
+  }
+
   public getIntersections(
     clientX: number,
     clientY: number,

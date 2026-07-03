@@ -115,15 +115,16 @@ function fillPolitical(
       continue
     }
 
-    if (customColors && customColors[id]) {
+    if (customColors && customColors[id] !== undefined) {
       const [r, g, b] = customColors[id]!
       paletteData[base] = r
       paletteData[base + 1] = g
       paletteData[base + 2] = b
     } else {
-      paletteData[base] = mix(def.color[0] / 255, 0.5, 0.35)
-      paletteData[base + 1] = mix(def.color[1] / 255, 0.5, 0.35)
-      paletteData[base + 2] = mix(def.color[2] / 255, 0.5, 0.35)
+      // Sem dono: branco
+      paletteData[base] = 1.0
+      paletteData[base + 1] = 1.0
+      paletteData[base + 2] = 1.0
     }
   }
 }

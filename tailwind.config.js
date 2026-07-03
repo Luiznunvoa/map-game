@@ -2,7 +2,12 @@
 export default {
   content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
   theme: {
-    extend: {},
+    extend: {
+      fontFamily: {
+        sans: ['"Star Crush"', 'sans-serif'],
+        serif: ['"Star Crush"', 'sans-serif'],
+      },
+    },
   },
   plugins: [],
 }

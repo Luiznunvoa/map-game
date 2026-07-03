@@ -77,6 +77,8 @@ export class Map3D implements Entity {
       u_time: { value: 0.0 },
       u_vMin: { value: mapVMin },
       u_vMax: { value: mapVMax },
+      u_riverTexture: { value: this.textures.riverTexture },
+      u_hasRivers: { value: this.textures.riverTexture !== null ? 1 : 0 },
     }
 
     this.material = new ShaderMaterial({

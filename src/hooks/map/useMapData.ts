@@ -36,6 +36,16 @@ export const fetchMapAssets = async (): Promise<{ worldData: WorldData; mapData:
     }
   }
 
+  // Fetch da textura de rios (opcional — pode não existir no .omb)
+  let riversBitmap: ImageBitmap | undefined
+  if (rawMapData.riversBitmapUrl) {
+    try {
+      riversBitmap = await mapService.fetchMapImage(`/api/map/rivers.png`)
+    } catch {
+      // rios não disponíveis, ignorar silenciosamente
+    }
+  }
+
   return {
     worldData: {
       countries,
@@ -44,6 +54,7 @@ export const fetchMapAssets = async (): Promise<{ worldData: WorldData; mapData:
     mapData: {
       ...rawMapData,
       provincesBitmap,
+      riversBitmap,
       idBufferResult: {
         ...rawMapData.idBufferResult,
         idBuffer: idBuffer,

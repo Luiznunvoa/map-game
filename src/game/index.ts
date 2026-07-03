@@ -110,7 +110,7 @@ export class GameEngine implements IGameEngine {
     this.interaction.updateCamera(state.camera)
     this.map?.updateTime(performance.now() / 1000)
 
-    if (this.onFrame && state.fps !== this.lastFps) {
+    if (this.onFrame) {
       this.lastFps = state.fps
       this.onFrame(state.fps)
     }
@@ -128,7 +128,11 @@ export class GameEngine implements IGameEngine {
           const ownerCountry = this.worldData.countries.find((c) => c.tag === prov.owner)
           if (ownerCountry) {
             customColors[prov.id] = ownerCountry.color
+            continue
           }
+        } else {
+          customColors[prov.id] = [1, 1, 1]
+          continue
         }
       }
     }
@@ -139,6 +143,14 @@ export class GameEngine implements IGameEngine {
 
   public generateEntityId(): number {
     return this.nextEntityId++
+  }
+
+  public getCameraPosition() {
+    return this.interaction.getCameraState()
+  }
+
+  public setCameraPosition(radius: number, theta: number, phi: number) {
+    this.interaction.setCameraState(radius, theta, phi)
   }
 
   start(): void {

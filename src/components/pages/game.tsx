@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Select } from '@/components/ui/select'
 import { GameEngine } from '@/game'
 import { useMapData } from '@/hooks/map/useMapData'
+import { useCameraStorage } from '@/hooks/map/useCameraStorage'
 import { useAuth } from '@/components/providers/AuthProvider'
 import type { GameEvent } from '@/types/game'
 import type { MapColorMode } from '@/types/globe'
@@ -22,11 +23,26 @@ export function RoomPage() {
   let containerRef!: HTMLDivElement
   let engine: GameEngine | null = null
 
+  const { updateStoredCameraPosition, getStoredCameraPosition } = useCameraStorage()
+
   const mapDataResource = useMapData()
 
   function handleFrame(fps: number) {
     setFps(fps)
   }
+
+  const saveCameraState = () => {
+    if (engine) {
+      updateStoredCameraPosition(engine.getCameraPosition())
+    }
+  }
+
+  createEffect(() => {
+    window.addEventListener('beforeunload', saveCameraState)
+    onCleanup(() => {
+      window.removeEventListener('beforeunload', saveCameraState)
+    })
+  })
 
   createEffect(() => {
     const data = mapDataResource()
@@ -34,6 +50,11 @@ export function RoomPage() {
       console.log("Entrando no mapa do jogo")
 
       engine = new GameEngine(containerRef, data.worldData, data.mapData)
+
+      const savedCamera = getStoredCameraPosition()
+      if (savedCamera) {
+        engine.setCameraPosition(savedCamera.radius, savedCamera.theta, savedCamera.phi)
+      }
 
       engine.onEvent = (event: GameEvent) => {
         if (event.type === 'NAVIGATE') {
@@ -79,11 +100,11 @@ export function RoomPage() {
             class="bg-gray-900/90 py-1.5 text-sm shadow pointer-events-auto"
             onChange={(e) => engine?.setColorMode(e.currentTarget.value as MapColorMode)}
           >
-            <option value="political">Modo Político</option>
-            <option value="terrain">Modo Terreno</option>
-            <option value="province">Modo Províncias</option>
-            <option value="continent">Modo Continentes</option>
-            <option value="region">Modo Regiões</option>
+            <option value="political">Political Map</option>
+            <option value="terrain">Terrain Map</option>
+            <option value="province">Province Map</option>
+            <option value="continent">Continent Map</option>
+            <option value="region">Region Map</option>
           </Select>
         </div>
         <Button

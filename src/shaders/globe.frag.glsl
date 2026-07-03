@@ -8,6 +8,8 @@ uniform float     u_ambientStrength;
 uniform float     u_time;
 uniform float     u_vMin;
 uniform float     u_vMax;
+uniform sampler2D u_riverTexture;
+uniform int       u_hasRivers;
 
 in vec2 vUv;
 in vec3 vNormal;
@@ -116,10 +118,22 @@ void main() {
     // Borda escura e forte delimitando fronteiras de cores diferentes (países)
     color = mix(color, vec3(0.0, 0.0, 0.0), 0.5);
   } else if (isLandBorder) {
-    // Borda clara e fraca para províncias dentro do mesmo país
+    // Borda adaptativa para províncias dentro do mesmo país:
+    // países claros recebem borda escura, países escuros recebem borda clara
     float dist = length(vViewPosition);
     float borderOpacity = smoothstep(2.2, 1.3, dist);
-    color = mix(color, vec3(1.0, 1.0, 1.0), borderOpacity * 0.15);
+    float luminance = dot(color, vec3(0.299, 0.587, 0.114));
+    vec3 borderColor = luminance > 0.5 ? vec3(0.0, 0.0, 0.0) : vec3(1.0, 1.0, 1.0);
+    color = mix(color, borderColor, borderOpacity * 0.3);
+  }
+
+  // Aplicar textura de rios, se disponível
+  if (u_hasRivers == 1) {
+    vec4 riverPixel = texture(u_riverTexture, uv);
+    if (riverPixel.a > 0.0) {
+      // Usa o alpha da textura de rio para fazer o mix com a cor atual da província
+      color = mix(color, riverPixel.rgb, riverPixel.a);
+    }
   }
 
   // Iluminação Lambertian simples

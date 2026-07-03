@@ -7,6 +7,7 @@ export type GlobeMapInput = Pick<
   'provinces' | 'provinceById' | 'defaultMap' | 'terrain' | 'continents' | 'regions'
 > & {
   provincesBitmap: ImageBitmap
+  riversBitmap?: ImageBitmap
   idBufferResult: IdBufferWithStats
 }
 
