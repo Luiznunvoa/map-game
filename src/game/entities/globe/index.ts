@@ -81,6 +81,7 @@ export class Map3D implements Entity {
       u_hasRivers: { value: this.textures.riverTexture !== null ? 1 : 0 },
       u_showRivers: { value: 1 },
       u_showBorders: { value: 1 },
+      u_isPopulationMode: { value: initialColorMode === 'population' ? 1 : 0 },
     }
 
     this.material = new ShaderMaterial({
@@ -160,6 +161,7 @@ export class Map3D implements Entity {
     mode: MapColorMode,
     customColors?: Record<ProvinceId, NormalizedColor>,
   ): void {
+    this.uniforms.u_isPopulationMode.value = mode === 'population' ? 1 : 0
     this.textures.updatePalette(mode, customColors)
   }
 

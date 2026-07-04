@@ -12,6 +12,7 @@ uniform sampler2D u_riverTexture;
 uniform int       u_hasRivers;
 uniform int       u_showRivers;
 uniform int       u_showBorders;
+uniform int       u_isPopulationMode;
 
 in vec2 vUv;
 in vec3 vNormal;
@@ -116,7 +117,7 @@ void main() {
   }
 
   // Aplicar bordas diferentes baseado no mapa de cores
-  if (isStateBorder) {
+  if (isStateBorder && u_isPopulationMode == 0) {
     // Borda escura e forte delimitando fronteiras de cores diferentes (países)
     color = mix(color, vec3(0.0, 0.0, 0.0), 0.5);
   } else if (isLandBorder && u_showBorders == 1) {

@@ -110,6 +110,7 @@ export function RoomPage() {
             <option value="province">Province Map</option>
             <option value="continent">Continent Map</option>
             <option value="region">Region Map</option>
+            <option value="population">Population Map</option>
           </Select>
 
           <div class="flex flex-col gap-2 pointer-events-auto bg-gray-900/90 p-3 rounded shadow text-sm text-white">

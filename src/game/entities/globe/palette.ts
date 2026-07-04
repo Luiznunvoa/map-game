@@ -48,6 +48,7 @@ export function fillPalette(
       fillByProvinceColor(paletteData, paletteSize, provinceById, seaStarts)
       break
     case 'political':
+    case 'population':
       fillPolitical(paletteData, paletteSize, provinceById, seaStarts, customColors)
       break
     case 'terrain':

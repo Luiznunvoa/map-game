@@ -134,6 +134,22 @@ export class GameEngine implements IGameEngine {
           continue
         }
       }
+    } else if (viewName === 'population') {
+      customColors = {}
+      let maxPop = 0
+      for (const prov of this.worldData.provinces) {
+        if (prov.population > maxPop) maxPop = prov.population
+      }
+      
+      const maxLog = Math.log(maxPop + 1)
+      for (const prov of this.worldData.provinces) {
+        if (prov.population === 0) {
+          customColors[prov.id] = [0, 0, 0]
+        } else {
+          const ratio = maxPop > 0 ? Math.log(prov.population + 1) / maxLog : 0
+          customColors[prov.id] = [ratio, 1 - ratio, 0]
+        }
+      }
     }
 
     this.colorMode = viewName
