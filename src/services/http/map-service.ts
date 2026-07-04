@@ -1,7 +1,7 @@
 import { unpack } from 'msgpackr'
 
 import { networkAdapter } from '@/lib/network'
-import type { CountryData, ProvinceData, RawMapData } from '@/types/data'
+import type { CountryData, ProvinceData, RawMapData, CultureData } from '@/types/data'
 import type { IRequestClient } from '@/types/network'
 
 export class MapService {
@@ -12,6 +12,7 @@ export class MapService {
   private mapDataPromise: Promise<RawMapData> | null = null
   private countriesPromise: Promise<CountryData[]> | null = null
   private definitionsPromise: Promise<ProvinceData[]> | null = null
+  private culturesPromise: Promise<Record<string, CultureData>> | null = null
   private savegamePromise: Promise<any> | null = null
   private idBufferPromise: Promise<ArrayBuffer> | null = null
   private imageCache: Record<string, Promise<ImageBitmap>> = {}
@@ -254,6 +255,33 @@ export class MapService {
   }
 
   /**
+   * Retorna os dados das culturas do jogo
+   */
+  public async fetchCultures(roomId: string): Promise<Record<string, CultureData>> {
+    this.checkRoomId(roomId)
+    if (!this.culturesPromise) {
+      this.culturesPromise = (async () => {
+        const savegame = await this.fetchSavegame(roomId)
+        const cultures: Record<string, CultureData> = {}
+        
+        if (savegame.cultures) {
+          for (const [name, culture] of Object.entries<any>(savegame.cultures)) {
+            cultures[name] = {
+              name: culture.name,
+              color: culture.color
+            }
+          }
+        }
+        return cultures
+      })().catch((e) => {
+        this.culturesPromise = null
+        throw e
+      })
+    }
+    return this.culturesPromise
+  }
+
+  /**
    * Retorna as definições base de todas as províncias
    */
   public async fetchDefinitions(roomId: string): Promise<ProvinceData[]> {
@@ -325,6 +353,7 @@ export class MapService {
     this.mapDataPromise = null
     this.countriesPromise = null
     this.definitionsPromise = null
+    this.culturesPromise = null
     this.savegamePromise = null
     this.idBufferPromise = null
     this.imageCache = {}

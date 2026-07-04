@@ -150,6 +150,39 @@ export class GameEngine implements IGameEngine {
           customColors[prov.id] = [ratio, 1 - ratio, 0]
         }
       }
+    } else if (viewName === 'culture') {
+      customColors = {}
+      
+      const hexToRGB = (hex: string): NormalizedColor => {
+        const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex)
+        return result ? [
+          parseInt(result[1], 16) / 255,
+          parseInt(result[2], 16) / 255,
+          parseInt(result[3], 16) / 255
+        ] : [1, 1, 1]
+      }
+
+      for (const prov of this.worldData.provinces) {
+        if (prov.population === 0 || !prov.pops || prov.pops.length === 0) {
+          customColors[prov.id] = [0, 0, 0]
+          continue
+        }
+        
+        const cultureCount: Record<string, number> = {}
+        let dominantCulture = ''
+        let maxPop = -1
+        
+        for (const pop of prov.pops) {
+          cultureCount[pop.culture] = (cultureCount[pop.culture] || 0) + pop.size
+          if (cultureCount[pop.culture] > maxPop) {
+            maxPop = cultureCount[pop.culture]
+            dominantCulture = pop.culture
+          }
+        }
+
+        const hexColor = this.worldData.cultures?.[dominantCulture]?.color || '#FFFFFF'
+        customColors[prov.id] = hexToRGB(hexColor)
+      }
     }
 
     this.colorMode = viewName

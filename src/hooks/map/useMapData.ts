@@ -5,9 +5,10 @@ import { mapService } from '@/services/http/map-service'
 import type { RichMapData, WorldData } from '@/types/data'
 
 export const fetchMapAssets = async (): Promise<{ worldData: WorldData; mapData: RichMapData }> => {
-  const [countries, provinces, rawMapData, provincesBitmap, riversBitmap, bufferArray] = await Promise.all([
+  const [countries, provinces, cultures, rawMapData, provincesBitmap, riversBitmap, bufferArray] = await Promise.all([
     mapService.fetchCountries(""),
     mapService.fetchDefinitions(""),
+    mapService.fetchCultures(""),
     mapService.fetchParsedMapData(""),
     mapService.fetchMapImage(`/api/map/provinces.png`),
     mapService.fetchMapImage(`/api/map/rivers.png`),
@@ -34,6 +35,7 @@ export const fetchMapAssets = async (): Promise<{ worldData: WorldData; mapData:
     worldData: {
       countries,
       provinces,
+      cultures,
     },
     mapData: {
       ...rawMapData,

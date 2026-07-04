@@ -40,9 +40,15 @@ export interface PlayerData {
   countryTag?: CountryTag
 }
 
+export interface CultureData {
+  name: string
+  color: string
+}
+
 export interface WorldData {
   countries: CountryData[]
   provinces: ProvinceData[]
+  cultures?: Record<string, CultureData>
 }
 
 // Static Map Definitions (From backend parsing)

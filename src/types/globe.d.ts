@@ -1,6 +1,6 @@
 import type { IdBufferWithStats, RawMapData } from './data'
 
-export type MapColorMode = 'political' | 'province' | 'terrain' | 'continent' | 'region' | 'population'
+export type MapColorMode = 'political' | 'province' | 'terrain' | 'continent' | 'region' | 'population' | 'culture'
 
 export type GlobeMapInput = Pick<
   RawMapData,
