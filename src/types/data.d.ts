@@ -84,8 +84,8 @@ export type ContinentMap = Record<string, ProvinceId[]>
 export interface ProvinceStats {
   id: ProvinceId
   pixelCount: number
-  sumX: number
-  sumY: number
+  centroidX: number
+  centroidY: number
   minX: number
   minY: number
   maxX: number

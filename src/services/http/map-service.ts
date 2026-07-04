@@ -92,17 +92,20 @@ export class MapService {
             maxProvinceId,
             orphanPixelCount: 0,
             foundIds,
-            stats: raw.Stats ? Object.fromEntries(
-              Object.entries(raw.Stats).map(([k, v]: [string, any]) => [k, {
-                id: Number(k),
-                pixelCount: Number(v.PixelCount),
-                sumX: Number(v.SumX),
-                sumY: Number(v.SumY),
-                minX: Number(v.MinX),
-                minY: Number(v.MinY),
-                maxX: Number(v.MaxX),
-                maxY: Number(v.MaxY),
-              }])
+            stats: raw.Provinces ? Object.fromEntries(
+              raw.Provinces.map((p: any) => {
+                const s = raw.Stats ? raw.Stats[p.ID] : null
+                return [p.ID, {
+                  id: p.ID,
+                  pixelCount: Number(p.PixelCount || 0),
+                  centroidX: Number(p.CentroidX || 0),
+                  centroidY: Number(p.CentroidY || 0),
+                  minX: s ? Number(s.MinX || 0) : 0,
+                  minY: s ? Number(s.MinY || 0) : 0,
+                  maxX: s ? Number(s.MaxX || 0) : 0,
+                  maxY: s ? Number(s.MaxY || 0) : 0,
+                }]
+              })
             ) : {},
           }
         }

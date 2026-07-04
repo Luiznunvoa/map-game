@@ -138,6 +138,24 @@ export class Map3D implements Entity {
     this.uniforms.u_selectedId.value = id
   }
 
+  public getProvinceCameraFocus(id: ProvinceId): { baseTheta: number; phi: number } | null {
+    const stats = this.textures.stats[id]
+    if (!stats || stats.pixelCount === 0) return null
+
+    const x = stats.centroidX
+    const y = stats.centroidY
+
+    const u = x / this.mapWidth
+    const mappedV = y / this.mapHeight
+    const v = mappedV * (this.mapVMax - this.mapVMin) + this.mapVMin
+
+    const phi = (1 - v) * Math.PI
+    // Adjust baseTheta mapping to look directly at the given U coordinate
+    const baseTheta = u * 2 * Math.PI - Math.PI / 2
+
+    return { baseTheta, phi }
+  }
+
   public setColorMode(
     mode: MapColorMode,
     customColors?: Record<ProvinceId, NormalizedColor>,

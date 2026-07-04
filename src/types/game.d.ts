@@ -38,6 +38,7 @@ export interface IGameEngine extends IView {
   generateEntityId(): number
   getCameraPosition(): { radius: number; theta: number; phi: number }
   setCameraPosition(radius: number, theta: number, phi: number): void
+  centerOnProvince(provinceId: number): void
 }
 
 export type GameConstructor<T> = new (...args: unknown[]) => T

@@ -160,6 +160,22 @@ export class GameEngine implements IGameEngine {
     this.interaction.setCameraState(radius, theta, phi)
   }
 
+  public centerOnProvince(provinceId: number): void {
+    if (!this.map) return
+
+    const focus = this.map.getProvinceCameraFocus(provinceId)
+    if (focus) {
+      const theta = focus.baseTheta + this.map.group.rotation.y
+      this.setCameraPosition(1.5, theta, focus.phi)
+      console.log(this.getCameraPosition())
+      this.map.selectProvince(provinceId)
+
+      if (this.onEvent) {
+        this.onEvent({ type: 'SELECT_PROVINCE', payload: { province_id: provinceId } })
+      }
+    }
+  }
+
   start(): void {
     this.scene.resume()
   }
