@@ -31,9 +31,6 @@ const CONTINENT_COLORS: NormalizedColor[] = [
   [0.78, 0.78, 0.31],
 ]
 
-function mix(a: number, b: number, t: number): number {
-  return a * (1 - t) + b * t
-}
 
 export function fillPalette(
   paletteData: Float32Array,
@@ -103,7 +100,7 @@ function fillPolitical(
     SEA_G = 0.18,
     SEA_B = 0.4
 
-  for (const [idStr, def] of Object.entries(provinceById)) {
+  for (const [idStr] of Object.entries(provinceById)) {
     const id = Number(idStr)
     if (id >= paletteSize) continue
     const base = id * 3

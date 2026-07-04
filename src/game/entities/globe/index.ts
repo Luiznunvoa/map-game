@@ -79,6 +79,8 @@ export class Map3D implements Entity {
       u_vMax: { value: mapVMax },
       u_riverTexture: { value: this.textures.riverTexture },
       u_hasRivers: { value: this.textures.riverTexture !== null ? 1 : 0 },
+      u_showRivers: { value: 1 },
+      u_showBorders: { value: 1 },
     }
 
     this.material = new ShaderMaterial({
@@ -141,6 +143,14 @@ export class Map3D implements Entity {
     customColors?: Record<ProvinceId, NormalizedColor>,
   ): void {
     this.textures.updatePalette(mode, customColors)
+  }
+
+  public setBordersVisible(visible: boolean): void {
+    this.uniforms.u_showBorders.value = visible ? 1 : 0
+  }
+
+  public setRiversVisible(visible: boolean): void {
+    this.uniforms.u_showRivers.value = visible ? 1 : 0
   }
 
   public updateTime(time: number): void {

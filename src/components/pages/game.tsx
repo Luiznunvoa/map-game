@@ -17,6 +17,8 @@ import { ProvincePanel } from '../features/rooms/province-panel'
 export function RoomPage() {
   const [fps, setFps] = createSignal(0)
   const [selectedProvinceId, setSelectedProvinceId] = createSignal<number | null>(null)
+  const [showBorders, setShowBorders] = createSignal(true)
+  const [showRivers, setShowRivers] = createSignal(true)
   const navigate = useNavigate()
   const { logout } = useAuth()
 
@@ -69,6 +71,9 @@ export function RoomPage() {
         handleFrame(currentFps)
       }
 
+      engine.setBordersVisible(showBorders())
+      engine.setRiversVisible(showRivers())
+
       engine.start()
     }
   })
@@ -106,6 +111,23 @@ export function RoomPage() {
             <option value="continent">Continent Map</option>
             <option value="region">Region Map</option>
           </Select>
+
+          <div class="flex flex-col gap-2 pointer-events-auto bg-gray-900/90 p-3 rounded shadow text-sm text-white">
+            <label class="flex items-center gap-2 cursor-pointer hover:text-gray-300">
+              <input type="checkbox" checked={showBorders()} onChange={(e) => {
+                setShowBorders(e.currentTarget.checked);
+                engine?.setBordersVisible(e.currentTarget.checked);
+              }} class="accent-red-600" />
+              Show Province Borders
+            </label>
+            <label class="flex items-center gap-2 cursor-pointer hover:text-gray-300">
+              <input type="checkbox" checked={showRivers()} onChange={(e) => {
+                setShowRivers(e.currentTarget.checked);
+                engine?.setRiversVisible(e.currentTarget.checked);
+              }} class="accent-red-600" />
+              Show Rivers
+            </label>
+          </div>
         </div>
         <Button
           class="bg-red-600 hover:bg-red-700 py-1.5 px-4 h-fit text-sm shadow pointer-events-auto"

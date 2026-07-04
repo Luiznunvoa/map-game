@@ -25,7 +25,7 @@ export class GameEngine implements IGameEngine {
   public onEvent?: GameEventHandler
   public onFrame?: (fps: number) => void
 
-  private lastFps = 0
+
 
   constructor(
     container: HTMLElement,
@@ -111,7 +111,6 @@ export class GameEngine implements IGameEngine {
     this.map?.updateTime(performance.now() / 1000)
 
     if (this.onFrame) {
-      this.lastFps = state.fps
       this.onFrame(state.fps)
     }
   }
@@ -139,6 +138,14 @@ export class GameEngine implements IGameEngine {
 
     this.colorMode = viewName
     this.map?.setColorMode(viewName, customColors)
+  }
+
+  public setBordersVisible(visible: boolean): void {
+    this.map?.setBordersVisible(visible)
+  }
+
+  public setRiversVisible(visible: boolean): void {
+    this.map?.setRiversVisible(visible)
   }
 
   public generateEntityId(): number {

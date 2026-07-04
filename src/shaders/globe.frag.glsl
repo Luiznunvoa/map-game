@@ -10,6 +10,8 @@ uniform float     u_vMin;
 uniform float     u_vMax;
 uniform sampler2D u_riverTexture;
 uniform int       u_hasRivers;
+uniform int       u_showRivers;
+uniform int       u_showBorders;
 
 in vec2 vUv;
 in vec3 vNormal;
@@ -117,7 +119,7 @@ void main() {
   if (isStateBorder) {
     // Borda escura e forte delimitando fronteiras de cores diferentes (países)
     color = mix(color, vec3(0.0, 0.0, 0.0), 0.5);
-  } else if (isLandBorder) {
+  } else if (isLandBorder && u_showBorders == 1) {
     // Borda adaptativa para províncias dentro do mesmo país:
     // países claros recebem borda escura, países escuros recebem borda clara
     float dist = length(vViewPosition);
@@ -127,12 +129,26 @@ void main() {
     color = mix(color, borderColor, borderOpacity * 0.3);
   }
 
-  // Aplicar textura de rios, se disponível
-  if (u_hasRivers == 1) {
+  // Aplicar rios por CIMA das fronteiras, usando contraste dinâmico e sub-pixel (mais finos)
+  if (u_hasRivers == 1 && u_showRivers == 1) {
     vec4 riverPixel = texture(u_riverTexture, uv);
-    if (riverPixel.a > 0.0) {
-      // Usa o alpha da textura de rio para fazer o mix com a cor atual da província
-      color = mix(color, riverPixel.rgb, riverPixel.a);
+    // Como voltamos para LinearFilter, o alpha decai nas bordas. 
+    // Consideramos apenas pixels com um mínimo de presença de rio.
+    if (riverPixel.a > 0.1) {
+      float dist = length(vViewPosition);
+      // Os rios somem quando afasta
+      float riverOpacity = smoothstep(1.5, 0.8, dist);
+      
+      // Afinamento (Thinning): O alpha central é ~0.78. 
+      // Com smoothstep cortamos a borda translúcida e deixamos a linha mais fina.
+      float thinMask = smoothstep(0.7, 0.7, riverPixel.a);
+      
+      // Contraste baseado na cor atual (província + possivelmente a borda)
+      float luminance = dot(color, vec3(0.299, 0.587, 0.114));
+      // Se a cor por baixo for clara, usamos um azul bem escuro; se for escura, um azul bem claro
+      vec3 dynamicRiverColor = luminance > 0.5 ? vec3(0.08, 0.18, 0.35) : vec3(0.45, 0.7, 0.95);
+      
+      color = mix(color, dynamicRiverColor, riverOpacity * thinMask * 0.95);
     }
   }
 

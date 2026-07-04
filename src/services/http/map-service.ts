@@ -13,6 +13,7 @@ export class MapService {
   private countriesPromise: Promise<CountryData[]> | null = null
   private definitionsPromise: Promise<ProvinceData[]> | null = null
   private savegamePromise: Promise<any> | null = null
+  private idBufferPromise: Promise<ArrayBuffer> | null = null
   private imageCache: Record<string, Promise<ImageBitmap>> = {}
 
   private checkRoomId(roomId: string) {
@@ -283,6 +284,27 @@ export class MapService {
   }
 
   /**
+   * Baixa o arquivo binário id_buffer.bin em formato ArrayBuffer
+   */
+  public async fetchIdBuffer(roomId: string): Promise<ArrayBuffer> {
+    this.checkRoomId(roomId)
+    if (!this.idBufferPromise) {
+      this.idBufferPromise = (async () => {
+        const res = await this.http.request<void, Blob>({
+          method: 'GET',
+          url: `/api/map/id_buffer.bin`,
+          responseType: 'blob',
+        })
+        return await res.data.arrayBuffer()
+      })().catch((e) => {
+        this.idBufferPromise = null
+        throw e
+      })
+    }
+    return this.idBufferPromise
+  }
+
+  /**
    * Limpa todos os caches de memória armazenados no serviço.
    * Útil para recarregar o mapa completamente do zero ou liberar memória RAM.
    */
@@ -291,6 +313,7 @@ export class MapService {
     this.countriesPromise = null
     this.definitionsPromise = null
     this.savegamePromise = null
+    this.idBufferPromise = null
     this.imageCache = {}
   }
 }
