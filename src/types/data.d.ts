@@ -1,3 +1,5 @@
+import type { POPState } from './state'
+
 export type ProvinceId = number
 export type CountryTag = string
 
@@ -23,6 +25,7 @@ export interface ProvinceData {
   controller: CountryTag | null
   adjacencies?: Adjacency[]
   population: number
+  pops?: POPState[]
 }
 
 export interface CountryData {

@@ -2,9 +2,20 @@ import { Schema } from '@colyseus/schema'
 
 import { type CountryData, type PlayerData, ProvinceData } from './data'
 
+export interface POPState {
+  id: number
+  size: number
+  type: string
+  culture: string
+  religion: string
+  wealth: number
+  militancy: number
+  consciousness: number
+}
+
 export type ProvinceState = Pick<
   ProvinceData,
-  'id' | 'owner' | 'controller' | 'cores' | 'population'
+  'id' | 'owner' | 'controller' | 'cores' | 'population' | 'pops'
 >
 
 export type PlayerState = Pick<PlayerData, 'id' | 'countryTag'>

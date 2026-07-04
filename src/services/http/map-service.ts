@@ -268,13 +268,23 @@ export class MapService {
         
         for (const prov of Object.values(mapData.provinceById)) {
           const provState = savegame.provinces && savegame.provinces[prov.id]
+          
+          let population = 0
+          let pops = undefined
+          
+          if (provState?.pops) {
+            pops = provState.pops
+            population = pops.reduce((sum: number, pop: any) => sum + pop.size, 0)
+          }
+
           defs.push({
             id: prov.id,
             color: prov.color,
             cores: [],
             owner: provState?.owner || 'NONE',
             controller: provState?.controller || null,
-            population: 1000
+            population: population,
+            pops: pops
           })
         }
         return defs
