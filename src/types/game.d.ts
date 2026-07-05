@@ -1,4 +1,3 @@
-import { StaticBackground } from '@/entities/background'
 import { Map3D } from '@/entities/globe'
 import type { CustomScene } from '@/game/scene'
 import type { InteractionManager } from '@/game/scene/interaction-manager'

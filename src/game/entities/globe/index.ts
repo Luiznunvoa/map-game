@@ -15,13 +15,14 @@ import ATMOSPHERE_VERT from '@/shaders/globe.atmosphere.vert.glsl?raw'
 import FRAGMENT_SHADER from '@/shaders/globe.frag.glsl?raw'
 import VERTEX_SHADER from '@/shaders/globe.vert.glsl?raw'
 import type { NormalizedColor, ProvinceId } from '@/types/data'
-import type { Entity } from '@/types/entity.js'
+import type { Entity } from '@/types/entity'
 import type { GameEvent } from '@/types/game'
 import type { GlobeMapInput, MapColorMode, ProvinceGlobeConfig } from '@/types/globe'
 import type { IntersectionResult } from '@/game/scene/interaction-manager'
+import type { FrameState } from '@/game/scene'
 
-import type { ProvinceTextures as MapTextures } from './textures.js'
-import { buildProvinceTextures } from './textures.js'
+import type { ProvinceTextures as MapTextures } from './textures'
+import { buildProvinceTextures } from './textures'
 
 export class Map3D implements Entity {
   public id: number
@@ -187,7 +188,7 @@ export class Map3D implements Entity {
     this.uniforms.u_showRivers.value = visible ? 1 : 0
   }
 
-  public update(state: import('@/game/scene').FrameState): void {
+  public update(state: FrameState): void {
     this.uniforms.u_time.value = performance.now() / 1000
     
     if (this.group.rotation && state.camera.position.length() > 8) {

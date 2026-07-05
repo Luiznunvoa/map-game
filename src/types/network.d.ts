@@ -1,5 +1,5 @@
 import type { CountryState, PlayerState, ProvinceState } from './state'
-import type { GameTickPayload, PlayerInRoom, Room, LobbyPlayer } from './room'
+import type { GameTickPayload, LobbyPlayer } from './room'
 
 export interface HttpRequest<TBody = unknown> {
   method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'

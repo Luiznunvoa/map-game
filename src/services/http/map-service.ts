@@ -7,6 +7,71 @@ import { networkAdapter } from '@/lib/network'
 import type { CountryData, ProvinceData, RawMapData, CultureData } from '@/types/data'
 import type { IRequestClient } from '@/types/network'
 
+export interface RawProvince {
+  ID: number
+  TerrainIdx: number
+  Color: number[]
+  Name: string
+  PixelCount?: number
+  CentroidX?: number
+  CentroidY?: number
+}
+export interface RawStats {
+  MinX?: number
+  MinY?: number
+  MaxX?: number
+  MaxY?: number
+}
+export interface RawAdjacency {
+  From: number
+  To: number
+  Type: number
+  Through: number
+}
+export interface RawTerrainType {
+  Name: string
+  Color: string
+  IsWater: boolean
+}
+export interface RawRegion {
+  Provinces: number[]
+}
+export interface RawContinent {
+  Regions: Record<string, RawRegion>
+}
+export interface FrontendResult {
+  Provinces: RawProvince[]
+  TerrainTypes: RawTerrainType[]
+  Sea: number[]
+  Adjacencies: RawAdjacency[]
+  Geography?: {
+    Continents: Record<string, RawContinent>
+  }
+  ProvincesBitmapUrl: string
+  TerrainBitmapUrl: string
+  RiversBitmapUrl: string
+  IdBufferUrl: string
+  Stats?: Record<number, RawStats>
+}
+
+export interface SavegameCountry {
+  color: string
+}
+export interface SavegameCulture {
+  name: string
+  color: string
+}
+export interface SavegameProvince {
+  owner?: string
+  controller?: string
+  pops?: { size: number }[]
+}
+export interface Savegame {
+  countries?: Record<string, SavegameCountry>
+  cultures?: Record<string, SavegameCulture>
+  provinces?: Record<number, SavegameProvince>
+}
+
 export class MapService {
   private http: IRequestClient
 
@@ -16,7 +81,7 @@ export class MapService {
   private countriesPromise: Promise<CountryData[]> | null = null
   private definitionsPromise: Promise<ProvinceData[]> | null = null
   private culturesPromise: Promise<Record<string, CultureData>> | null = null
-  private savegamePromise: Promise<any> | null = null
+  private savegamePromise: Promise<Savegame> | null = null
   private idBufferPromise: Promise<ArrayBuffer> | null = null
   private imageCache: Record<string, Promise<ImageBitmap>> = {}
 
@@ -52,14 +117,14 @@ export class MapService {
 
         // Lê o stream descompactado como buffer binário e decodifica o MessagePack
         const buffer = await decompressedResponse.arrayBuffer()
-        const raw = unpack(new Uint8Array(buffer)) as any // it's FrontendResult in Go
+        const raw = unpack(new Uint8Array(buffer)) as FrontendResult
 
-        const foundIds = raw.Provinces ? raw.Provinces.map((p: any) => p.ID) : []
+        const foundIds = raw.Provinces ? raw.Provinces.map((p) => p.ID) : []
         const maxProvinceId = foundIds.length > 0 ? Math.max(...foundIds) : 0
 
         const terrainOverrides: Record<number, string> = {}
         if (raw.Provinces && raw.TerrainTypes) {
-          raw.Provinces.forEach((p: any) => {
+          raw.Provinces.forEach((p) => {
             const tType = raw.TerrainTypes[p.TerrainIdx]
             if (tType) {
               terrainOverrides[p.ID] = tType.Name
@@ -75,7 +140,7 @@ export class MapService {
           },
           provinces: {},
           provinceById: {},
-          adjacencies: raw.Adjacencies ? raw.Adjacencies.map((a: any) => ({
+          adjacencies: raw.Adjacencies ? raw.Adjacencies.map((a) => ({
             from: a.From,
             to: a.To,
             type: (a.Type === 0 ? 'land' : a.Type === 4 ? 'impassable' : 'sea'),
@@ -98,7 +163,7 @@ export class MapService {
             orphanPixelCount: 0,
             foundIds,
             stats: raw.Provinces ? Object.fromEntries(
-              raw.Provinces.map((p: any) => {
+              raw.Provinces.map((p) => {
                 const s = raw.Stats ? raw.Stats[p.ID] : null
                 return [p.ID, {
                   id: p.ID,
@@ -116,7 +181,7 @@ export class MapService {
         }
 
         if (raw.Provinces) {
-          raw.Provinces.forEach((p: any) => {
+          raw.Provinces.forEach((p) => {
             const def = { id: p.ID, color: p.Color, name: p.Name }
             mapData.provinceById[p.ID] = def
             mapData.provinces[p.Color.join(',')] = def
@@ -124,7 +189,7 @@ export class MapService {
         }
 
         if (raw.TerrainTypes) {
-          raw.TerrainTypes.forEach((val: any) => {
+          raw.TerrainTypes.forEach((val) => {
             mapData.terrain.categories[val.Name] = {
               name: val.Name,
               color: val.Color,
@@ -134,10 +199,10 @@ export class MapService {
         }
 
         if (raw.Geography && raw.Geography.Continents) {
-          Object.entries(raw.Geography.Continents).forEach(([contName, cont]: [string, any]) => {
+          Object.entries(raw.Geography.Continents).forEach(([contName, cont]) => {
             const contProvinces: number[] = []
             if (cont.Regions) {
-              Object.entries(cont.Regions).forEach(([regName, reg]: [string, any]) => {
+              Object.entries(cont.Regions).forEach(([regName, reg]) => {
                 const regProvinces = reg.Provinces || []
                 mapData.regions[regName] = regProvinces
                 contProvinces.push(...regProvinces)
@@ -202,7 +267,7 @@ export class MapService {
   /**
    * Busca os dados do savegame (estado político e econômico)
    */
-  public async fetchSavegame(roomId: string): Promise<any> {
+  public async fetchSavegame(roomId: string): Promise<Savegame> {
     this.checkRoomId(roomId)
     if (!this.savegamePromise) {
       this.savegamePromise = (async () => {
@@ -237,7 +302,7 @@ export class MapService {
         const countries: CountryData[] = []
         
         if (savegame.countries) {
-          for (const [tag, country] of Object.entries<any>(savegame.countries)) {
+          for (const [tag, country] of Object.entries(savegame.countries)) {
             const hex = country.color.replace('#', '')
             let r = 0, g = 0, b = 0
             if (hex.length === 6) {
@@ -272,7 +337,7 @@ export class MapService {
         const cultures: Record<string, CultureData> = {}
         
         if (savegame.cultures) {
-          for (const [name, culture] of Object.entries<any>(savegame.cultures)) {
+          for (const [name, culture] of Object.entries(savegame.cultures)) {
             cultures[name] = {
               name: culture.name,
               color: culture.color
@@ -308,8 +373,8 @@ export class MapService {
           let pops = undefined
           
           if (provState?.pops) {
-            pops = provState.pops
-            population = pops.reduce((sum: number, pop: any) => sum + pop.size, 0)
+            pops = provState.pops as { size: number, type: string, culture: string, religion: string }[]
+            population = pops.reduce((sum, pop) => sum + pop.size, 0)
           }
 
           defs.push({

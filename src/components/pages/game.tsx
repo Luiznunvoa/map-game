@@ -59,7 +59,7 @@ export function RoomPage() {
       </div>
 
       {/* Bottom Left Overlay */}
-      <div class="absolute bottom-0 left-0 p-4 pointer-events-none z-10">
+      <div class="absolute bottom-0 right-0 p-4 pointer-events-none z-10">
         <ProvincePanel
           provinceId={selectedProvinceId()}
           mapData={mapDataResource()?.mapData}

@@ -42,7 +42,7 @@ export function useGameTime(roomId: string, isActive: () => boolean, onRoomClose
       networkAdapter.stateWs.connect(stateWsUrl).catch((err: unknown) => {
         console.error('Failed to connect to state WS:', err)
       })
-    } catch (e) {
+    } catch {
       // Ignora se já estiver conectado
     }
 

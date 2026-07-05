@@ -1,7 +1,7 @@
 /**
  * A lightweight tagged template literal function to create HTML elements easily.
  */
-export function html(strings: TemplateStringsArray, ...values: any[]): HTMLElement {
+export function html(strings: TemplateStringsArray, ...values: unknown[]): HTMLElement {
   const rawHtml = strings.reduce((result, str, i) => result + str + (values[i] ?? ''), '')
   const template = document.createElement('template')
   template.innerHTML = rawHtml.trim()

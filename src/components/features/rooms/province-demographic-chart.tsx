@@ -45,12 +45,18 @@ export function ProvinceDemographicChart(props: ProvinceDemographicChartProps) {
       totalSize += pop.size
     })
 
-    const chartData: any[] = []
+    interface ChartDataItem {
+      name: string
+      value: number
+      itemStyle?: { color: string }
+    }
+
+    const chartData: ChartDataItem[] = []
     let othersSize = 0
     for (const [key, size] of Object.entries(aggregated)) {
       if (size / totalSize >= 0.05) {
         const capName = key.charAt(0).toUpperCase() + key.slice(1)
-        const item: any = {
+        const item: ChartDataItem = {
           name: capName,
           value: size
         }
