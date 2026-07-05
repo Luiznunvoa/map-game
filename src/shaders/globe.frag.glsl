@@ -1,5 +1,6 @@
 uniform sampler2D u_idTexture;
 uniform sampler2D u_palette;
+uniform sampler2D u_stripePalette;
 uniform float     u_paletteSize;
 uniform int       u_selectedId;
 uniform vec3      u_highlightColor;
@@ -67,11 +68,26 @@ void main() {
   // Decodificar ID da província
   int id = getProvinceId(uv);
 
-  // Lookup da paleta
+  // Lookup da paleta principal
   float paletteU = (float(id) + 0.5) / u_paletteSize;
   vec4 paletteSample = texture(u_palette, vec2(paletteU, 0.5));
   vec3 color = paletteSample.rgb;
   bool isSeaProvince = (paletteSample.a < 0.5);
+
+  // Lookup da paleta de stripes (culturas secundárias)
+  vec4 stripeSample = texture(u_stripePalette, vec2(paletteU, 0.5));
+  if (stripeSample.a > 0.5) {
+    // Efeito de listras em ângulo
+    // vUv.x e vUv.y determinam as coordenadas na tela. 
+    // Multiplicamos por uma frequência para ter várias listras.
+    float stripeFrequency = 350.0;
+    // Opcional: dependendo da sua projeção, multiplicar apenas por (vUv.x + vUv.y) cria o ângulo.
+    float stripeLine = fract((vUv.x + vUv.y) * stripeFrequency);
+    // 0.5 faz com que metade da listra seja a cor secundária e metade a principal
+    if (stripeLine < 0.5) {
+      color = stripeSample.rgb;
+    }
+  }
 
   // Verificar se é borda
   bool isSeaBorder = false;

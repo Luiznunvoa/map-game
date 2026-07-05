@@ -1,5 +1,6 @@
 import { Show } from 'solid-js'
 import type { RichMapData, WorldData, ProvinceId } from '@/types/data'
+import { ProvinceDemographicChart } from './province-demographic-chart'
 
 interface ProvincePanelProps {
   provinceId: ProvinceId | null
@@ -39,30 +40,10 @@ export function ProvincePanel(props: ProvincePanelProps) {
     return 'Unknown'
   }
 
-  const aggregatedPops = () => {
-    const data = provinceData()
-    if (!data || !data.pops || data.pops.length === 0) return null
-    
-    const aggregated: Record<string, number> = {}
-    let totalSize = 0
-    
-    data.pops.forEach(pop => {
-      const key = `${pop.culture} ${pop.type}`
-      aggregated[key] = (aggregated[key] || 0) + pop.size
-      totalSize += pop.size
-    })
-    
-    return Object.entries(aggregated)
-      .sort((a, b) => b[1] - a[1])
-      .map(([name, size]) => {
-        const percentage = totalSize > 0 ? Math.round((size / totalSize) * 100) : 0
-        return { name, size, percentage }
-      })
-  }
 
   return (
     <Show when={props.provinceId && provinceDef()}>
-      <div class="pointer-events-auto w-80 bg-gray-900 border border-gray-700 rounded shadow-lg overflow-hidden flex flex-col text-white">
+      <div class="pointer-events-auto w-[480px] bg-gray-900 border border-gray-700 rounded shadow-lg overflow-hidden flex flex-col text-white">
         <div class="bg-gray-800 px-4 py-3 border-b border-gray-700 flex justify-between items-center">
           <h2 class="font-bold text-lg text-white">{provinceDef()?.name || `Province ${props.provinceId}`}</h2>
           <span class="text-xs text-gray-400 font-mono">ID: {props.provinceId}</span>
@@ -140,22 +121,15 @@ export function ProvincePanel(props: ProvincePanelProps) {
               </div>
             </Show>
 
-            <Show when={aggregatedPops()}>
-              <div class="flex flex-col mt-1 bg-gray-800 p-3 rounded border border-gray-700">
-                <span class="text-gray-400 text-xs uppercase font-bold mb-2">Demographics</span>
-                <div class="flex flex-col gap-1.5">
-                  <div class="flex justify-between text-xs text-gray-400 font-bold border-b border-gray-700 pb-1 mb-1">
-                    <span>POP</span>
-                    <span>Size</span>
-                  </div>
-                  {aggregatedPops()!.map(({ name, size, percentage }) => (
-                    <div class="flex justify-between text-xs text-gray-300 items-center">
-                      <span class="capitalize">{name}</span>
-                      <span class="font-mono text-gray-400">
-                        {Intl.NumberFormat('en', { notation: 'compact', maximumFractionDigits: 1 }).format(size).toLowerCase()} <span class="text-gray-500">({percentage}%)</span>
-                      </span>
-                    </div>
-                  ))}
+            <Show when={provinceData()?.pops && provinceData()!.pops!.length > 0}>
+              <div class="grid grid-cols-2 gap-3 mt-1">
+                <div class="flex flex-col bg-gray-800 pt-3 pb-1 px-3 rounded border border-gray-700">
+                  <span class="text-gray-400 text-xs uppercase font-bold mb-1">Cultures</span>
+                  <ProvinceDemographicChart pops={provinceData()!.pops!} category="culture" cultures={props.worldData?.cultures} />
+                </div>
+                <div class="flex flex-col bg-gray-800 pt-3 pb-1 px-3 rounded border border-gray-700">
+                  <span class="text-gray-400 text-xs uppercase font-bold mb-1">Professions</span>
+                  <ProvinceDemographicChart pops={provinceData()!.pops!} category="type" />
                 </div>
               </div>
             </Show>

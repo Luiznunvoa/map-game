@@ -8,13 +8,14 @@ import { fillPalette, floatRgbToRgbaBytes } from './palette.js'
 export interface ProvinceTextures {
   idTexture: DataTexture
   paletteTexture: DataTexture
+  stripePaletteTexture: DataTexture
   riverTexture: DataTexture | null
   maxProvinceId: number
   mapWidth: number
   mapHeight: number
   idBuffer: Uint16Array
   stats: IdBufferWithStats['stats']
-  updatePalette(mode: MapColorMode, customColors?: Record<ProvinceId, NormalizedColor>): void
+  updatePalette(mode: MapColorMode, customColors?: Record<ProvinceId, NormalizedColor>, customSecondaryColors?: Record<ProvinceId, NormalizedColor>): void
   dispose(): void
 }
 
@@ -76,9 +77,16 @@ export function buildProvinceTextures(
   paletteTexture.magFilter = NearestFilter
   paletteTexture.needsUpdate = true
 
+  const stripeBytes = new Uint8Array(paletteSize * 4)
+  const stripePaletteTexture = new DataTexture(stripeBytes, paletteSize, 1, RGBAFormat, UnsignedByteType)
+  stripePaletteTexture.minFilter = NearestFilter
+  stripePaletteTexture.magFilter = NearestFilter
+  stripePaletteTexture.needsUpdate = true
+
   function updatePalette(
     mode: MapColorMode,
     customColors?: Record<ProvinceId, NormalizedColor>,
+    customSecondaryColors?: Record<ProvinceId, NormalizedColor>,
   ): void {
     paletteFloat.fill(0)
     paletteFloat[0] = 0.08
@@ -100,6 +108,19 @@ export function buildProvinceTextures(
     const newBytes = floatRgbToRgbaBytes(paletteFloat, paletteSize, seaStartsSet)
     paletteBytes.set(newBytes)
     paletteTexture.needsUpdate = true
+
+    stripeBytes.fill(0)
+    if (customSecondaryColors) {
+      for (const [idStr, color] of Object.entries(customSecondaryColors)) {
+        const id = Number(idStr)
+        if (id >= paletteSize) continue
+        stripeBytes[id * 4 + 0] = Math.min(255, Math.round(color[0] * 255))
+        stripeBytes[id * 4 + 1] = Math.min(255, Math.round(color[1] * 255))
+        stripeBytes[id * 4 + 2] = Math.min(255, Math.round(color[2] * 255))
+        stripeBytes[id * 4 + 3] = 255
+      }
+    }
+    stripePaletteTexture.needsUpdate = true
   }
 
   // Cria a textura RGBA do overlay de rios a partir do ImageBitmap
@@ -120,6 +141,7 @@ export function buildProvinceTextures(
   return {
     idTexture,
     paletteTexture,
+    stripePaletteTexture,
     riverTexture,
     maxProvinceId,
     mapWidth: width,
@@ -130,6 +152,7 @@ export function buildProvinceTextures(
     dispose() {
       idTexture.dispose()
       paletteTexture.dispose()
+      stripePaletteTexture.dispose()
       riverTexture?.dispose()
     },
   }

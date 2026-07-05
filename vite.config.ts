@@ -23,6 +23,7 @@ export default defineConfig({
         manualChunks: (id) => {
           if (id.includes('node_modules')) {
             if (id.includes('three')) return 'three'
+            if (id.includes('echarts') || id.includes('zrender')) return 'echarts'
             return 'vendor'
           }
         },

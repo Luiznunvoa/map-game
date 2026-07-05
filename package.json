@@ -29,6 +29,7 @@
     "@solidjs/router": "^0.16.1",
     "@types/three": "^0.184.1",
     "axios": "^1.18.0",
+    "echarts": "^6.1.0",
     "msgpackr": "^2.0.4",
     "solid-js": "^1.9.13",
     "three": "^0.184.0"

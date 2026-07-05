@@ -119,6 +119,7 @@ export class GameEngine implements IGameEngine {
     if (!this.worldData) return
 
     let customColors: Record<number, NormalizedColor> | undefined
+    let customSecondaryColors: Record<number, NormalizedColor> | undefined
 
     if (viewName === 'political') {
       customColors = {}
@@ -152,6 +153,7 @@ export class GameEngine implements IGameEngine {
       }
     } else if (viewName === 'culture') {
       customColors = {}
+      customSecondaryColors = {}
       
       const hexToRGB = (hex: string): NormalizedColor => {
         const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex)
@@ -171,9 +173,11 @@ export class GameEngine implements IGameEngine {
         const cultureCount: Record<string, number> = {}
         let dominantCulture = ''
         let maxPop = -1
+        let totalPop = 0
         
         for (const pop of prov.pops) {
           cultureCount[pop.culture] = (cultureCount[pop.culture] || 0) + pop.size
+          totalPop += pop.size
           if (cultureCount[pop.culture] > maxPop) {
             maxPop = cultureCount[pop.culture]
             dominantCulture = pop.culture
@@ -182,11 +186,25 @@ export class GameEngine implements IGameEngine {
 
         const hexColor = this.worldData.cultures?.[dominantCulture]?.color || '#FFFFFF'
         customColors[prov.id] = hexToRGB(hexColor)
+
+        // Find secondary culture >= 33%
+        let secondaryCulture = ''
+        for (const [culture, size] of Object.entries(cultureCount)) {
+          if (culture !== dominantCulture && size >= totalPop * 0.33) {
+            secondaryCulture = culture
+            break // Pick the first one that matches
+          }
+        }
+
+        if (secondaryCulture) {
+          const secHexColor = this.worldData.cultures?.[secondaryCulture]?.color || '#FFFFFF'
+          customSecondaryColors[prov.id] = hexToRGB(secHexColor)
+        }
       }
     }
 
     this.colorMode = viewName
-    this.map?.setColorMode(viewName, customColors)
+    this.map?.setColorMode(viewName, customColors, customSecondaryColors)
   }
 
   public setBordersVisible(visible: boolean): void {

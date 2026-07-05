@@ -69,6 +69,7 @@ export class Map3D implements Entity {
     this.uniforms = {
       u_idTexture: { value: idTexture },
       u_palette: { value: paletteTexture },
+      u_stripePalette: { value: this.textures.stripePaletteTexture },
       u_paletteSize: { value: maxProvinceId + 1 },
       u_selectedId: { value: 0 },
       u_highlightColor: { value: new Vector3(1.0, 0.85, 0.0) },
@@ -160,9 +161,10 @@ export class Map3D implements Entity {
   public setColorMode(
     mode: MapColorMode,
     customColors?: Record<ProvinceId, NormalizedColor>,
+    customSecondaryColors?: Record<ProvinceId, NormalizedColor>,
   ): void {
     this.uniforms.u_isPopulationMode.value = mode === 'population' ? 1 : 0
-    this.textures.updatePalette(mode, customColors)
+    this.textures.updatePalette(mode, customColors, customSecondaryColors)
   }
 
   public setBordersVisible(visible: boolean): void {

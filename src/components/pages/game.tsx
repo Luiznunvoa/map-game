@@ -4,15 +4,16 @@ import { createEffect, createSignal, onCleanup, Show } from 'solid-js'
 import { bg } from '@/assets'
 import { Loading } from '@/components/features/loading'
 import { Button } from '@/components/ui/button'
-import { Select } from '@/components/ui/select'
 import { GameEngine } from '@/game'
 import { useMapData } from '@/hooks/map/useMapData'
 import { useCameraStorage } from '@/hooks/map/useCameraStorage'
 import { useAuth } from '@/components/providers/AuthProvider'
 import type { GameEvent } from '@/types/game'
-import type { MapColorMode } from '@/types/globe'
 import { FpsCounter } from '../features/rooms/fps-counter'
 import { ProvincePanel } from '../features/rooms/province-panel'
+import { MapModeSelect } from '../features/rooms/map-mode-select'
+import { ProvinceSearch } from '../features/rooms/province-search'
+import { MapSettings } from '../features/rooms/map-settings'
 
 export function RoomPage() {
   const [fps, setFps] = createSignal(0)
@@ -43,6 +44,21 @@ export function RoomPage() {
     window.addEventListener('beforeunload', saveCameraState)
     onCleanup(() => {
       window.removeEventListener('beforeunload', saveCameraState)
+    })
+  })
+
+  createEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setSelectedProvinceId(null)
+        if (engine && engine.map) {
+          engine.map.selectProvince(0)
+        }
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    onCleanup(() => {
+      window.removeEventListener('keydown', handleKeyDown)
     })
   })
 
@@ -101,66 +117,22 @@ export function RoomPage() {
         <div class="flex flex-col gap-6 pointer-events-auto">
           <FpsCounter fps={fps} />
 
-          <Select
-            class="bg-gray-900/90 py-1.5 text-sm shadow pointer-events-auto"
-            onChange={(e) => engine?.setColorMode(e.currentTarget.value as MapColorMode)}
-          >
-            <option value="political">Political Map</option>
-            <option value="terrain">Terrain Map</option>
-            <option value="province">Province Map</option>
-            <option value="continent">Continent Map</option>
-            <option value="region">Region Map</option>
-            <option value="population">Population Map</option>
-            <option value="culture">Culture Map</option>
-          </Select>
+          <MapModeSelect onModeChange={(mode) => engine?.setColorMode(mode)} />
 
-          <div class="flex flex-col gap-2 pointer-events-auto bg-gray-900/90 p-3 rounded shadow text-sm text-white">
-            <div class="font-semibold text-xs text-gray-400 uppercase tracking-wider mb-1">Search</div>
-            <div class="flex items-center gap-2">
-              <input
-                type="text"
-                placeholder="Province ID"
-                class="bg-gray-800 text-white px-2 py-1 rounded w-28 outline-none border border-gray-700 focus:border-red-600"
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    const id = parseInt(e.currentTarget.value)
-                    if (!isNaN(id)) engine?.centerOnProvince(id)
-                    e.currentTarget.value = ''
-                    e.currentTarget.blur()
-                  }
-                }}
-              />
-              <Button
-                class="bg-red-600 hover:bg-red-700 py-1 px-3 text-xs h-auto"
-                onClick={(e) => {
-                  const input = e.currentTarget.previousElementSibling as HTMLInputElement
-                  const id = parseInt(input.value)
-                  if (!isNaN(id)) engine?.centerOnProvince(id)
-                  input.value = ''
-                  input.blur()
-                }}
-              >
-                Go
-              </Button>
-            </div>
-          </div>
+          <ProvinceSearch onSearch={(id) => engine?.centerOnProvince(id)} />
 
-          <div class="flex flex-col gap-2 pointer-events-auto bg-gray-900/90 p-3 rounded shadow text-sm text-white">
-            <label class="flex items-center gap-2 cursor-pointer hover:text-gray-300">
-              <input type="checkbox" checked={showBorders()} onChange={(e) => {
-                setShowBorders(e.currentTarget.checked);
-                engine?.setBordersVisible(e.currentTarget.checked);
-              }} class="accent-red-600" />
-              Show Province Borders
-            </label>
-            <label class="flex items-center gap-2 cursor-pointer hover:text-gray-300">
-              <input type="checkbox" checked={showRivers()} onChange={(e) => {
-                setShowRivers(e.currentTarget.checked);
-                engine?.setRiversVisible(e.currentTarget.checked);
-              }} class="accent-red-600" />
-              Show Rivers
-            </label>
-          </div>
+          <MapSettings
+            showBorders={showBorders()}
+            showRivers={showRivers()}
+            onBordersChange={(show) => {
+              setShowBorders(show)
+              engine?.setBordersVisible(show)
+            }}
+            onRiversChange={(show) => {
+              setShowRivers(show)
+              engine?.setRiversVisible(show)
+            }}
+          />
         </div>
         <Button
           class="bg-red-600 hover:bg-red-700 py-1.5 px-4 h-fit text-sm shadow pointer-events-auto"
