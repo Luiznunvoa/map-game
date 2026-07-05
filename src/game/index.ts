@@ -1,13 +1,14 @@
 import { bg } from '@/assets'
-import type { NormalizedColor, RichMapData, WorldData } from '@/types/data'
+import type { RichMapData, WorldData } from '@/types/data'
 import type { Entity } from '@/types/entity'
-import type { GameEventHandler, IGameEngine } from '@/types/game'
+import type { GameEventHandler, IGameEngine, GameEvent } from '@/types/game'
 import type { MapColorMode } from '@/types/globe'
 
 import { StaticBackground } from './entities/background'
 import { Map3D } from './entities/globe'
 import { CustomScene, type FrameState } from './scene'
 import { InteractionManager } from './scene/interaction-manager'
+import { processColorMode } from './processors/color-processor'
 
 export class GameEngine implements IGameEngine {
   public container: HTMLElement
@@ -24,8 +25,6 @@ export class GameEngine implements IGameEngine {
 
   public onEvent?: GameEventHandler
   public onFrame?: (fps: number) => void
-
-
 
   constructor(
     container: HTMLElement,
@@ -49,6 +48,8 @@ export class GameEngine implements IGameEngine {
       initialColorMode: this.colorMode,
     })
 
+    this.entities.push(this.map)
+
     this.setColorMode(this.colorMode)
 
     this.scene = new CustomScene(this.container, {
@@ -57,11 +58,9 @@ export class GameEngine implements IGameEngine {
         near: 0.1,
         far: 1000,
       },
-      entities: [...this.entities],
+      entities: this.entities,
       onFrame: this.handleFrameTick,
     })
-
-    this.scene.setEntities([this.map, ...this.entities])
 
     this.interaction = new InteractionManager(this.scene, this.container)
     this.interaction.onClick(this.onClick)
@@ -77,45 +76,51 @@ export class GameEngine implements IGameEngine {
   private onClick = (event: MouseEvent): void => {
     if (!this.container || !this.interaction) return
 
-    const raycastEntities = this.map ? [this.map, ...this.entities] : this.entities
-    const hits = this.interaction.getIntersections(event.clientX, event.clientY, raycastEntities)
+    const hits = this.interaction.getIntersections(event.clientX, event.clientY, this.entities)
     if (hits.length === 0) return
 
-    // Procurar se atingimos o mapa (a esfera da província)
-    const mapHit = hits.find(
-      (hit) => hit.entity === this.map && hit.objectName === 'province-sphere',
-    )
-
-    if (mapHit && mapHit.uv && this.map) {
-      const provinceId = this.map.pickProvinceAt(mapHit.uv.x, mapHit.uv.y)
-
-      if (provinceId > 0) {
-        this.map.selectProvince(provinceId)
-        
-        if (this.onEvent) {
-          this.onEvent({ type: 'SELECT_PROVINCE', payload: { province_id: provinceId } })
-        }
-
-        if (this.worldData) {
-          const prov = this.worldData.provinces.find(p => p.id === provinceId)
-          if (prov && prov.owner) {
-            if (this.onEvent) {
-              this.onEvent({ type: 'SELECT_COUNTRY', payload: { country_id: prov.owner } })
-            }
-          }
+    const firstHit = hits[0]
+    
+    if (firstHit.entity.onClick) {
+      const generatedEvents = firstHit.entity.onClick(firstHit)
+      
+      if (generatedEvents) {
+        for (const e of generatedEvents) {
+          this.handleEntityEvent(e)
         }
       }
     }
   }
 
-  private handleFrameTick = (state: FrameState): void => {
-    const currentObject = this.map?.group
-    if (currentObject?.rotation && state.camera.position.length() > 8) {
-      currentObject.rotation.y += 0.001
-    }
+  private handleEntityEvent(event: GameEvent): void {
+    if (event.type === 'SELECT_PROVINCE') {
+      if (this.onEvent) {
+        this.onEvent(event)
+      }
 
+      if (this.worldData) {
+        const prov = this.worldData.provinces.find(p => p.id === event.payload.province_id)
+        if (prov && prov.owner) {
+          if (this.onEvent) {
+            this.onEvent({ type: 'SELECT_COUNTRY', payload: { country_id: prov.owner } })
+          }
+        }
+      }
+    } else {
+      if (this.onEvent) {
+        this.onEvent(event)
+      }
+    }
+  }
+
+  private handleFrameTick = (state: FrameState): void => {
     this.interaction.updateCamera(state.camera)
-    this.map?.updateTime(performance.now() / 1000)
+    
+    for (const entity of this.entities) {
+      if (entity.update) {
+        entity.update(state)
+      }
+    }
 
     if (this.onFrame) {
       this.onFrame(state.fps)
@@ -125,90 +130,7 @@ export class GameEngine implements IGameEngine {
   public setColorMode(viewName: MapColorMode): void {
     if (!this.worldData) return
 
-    let customColors: Record<number, NormalizedColor> | undefined
-    let customSecondaryColors: Record<number, NormalizedColor> | undefined
-
-    if (viewName === 'political') {
-      customColors = {}
-      for (const prov of this.worldData.provinces) {
-        if (prov.owner && this.worldData.countries) {
-          const ownerCountry = this.worldData.countries.find((c) => c.tag === prov.owner)
-          if (ownerCountry) {
-            customColors[prov.id] = ownerCountry.color
-            continue
-          }
-        } else {
-          customColors[prov.id] = [1, 1, 1]
-          continue
-        }
-      }
-    } else if (viewName === 'population') {
-      customColors = {}
-      let maxPop = 0
-      for (const prov of this.worldData.provinces) {
-        if (prov.population > maxPop) maxPop = prov.population
-      }
-      
-      const maxLog = Math.log(maxPop + 1)
-      for (const prov of this.worldData.provinces) {
-        if (prov.population === 0) {
-          customColors[prov.id] = [0, 0, 0]
-        } else {
-          const ratio = maxPop > 0 ? Math.log(prov.population + 1) / maxLog : 0
-          customColors[prov.id] = [ratio, 1 - ratio, 0]
-        }
-      }
-    } else if (viewName === 'culture') {
-      customColors = {}
-      customSecondaryColors = {}
-      
-      const hexToRGB = (hex: string): NormalizedColor => {
-        const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex)
-        return result ? [
-          parseInt(result[1], 16) / 255,
-          parseInt(result[2], 16) / 255,
-          parseInt(result[3], 16) / 255
-        ] : [1, 1, 1]
-      }
-
-      for (const prov of this.worldData.provinces) {
-        if (prov.population === 0 || !prov.pops || prov.pops.length === 0) {
-          customColors[prov.id] = [0, 0, 0]
-          continue
-        }
-        
-        const cultureCount: Record<string, number> = {}
-        let dominantCulture = ''
-        let maxPop = -1
-        let totalPop = 0
-        
-        for (const pop of prov.pops) {
-          cultureCount[pop.culture] = (cultureCount[pop.culture] || 0) + pop.size
-          totalPop += pop.size
-          if (cultureCount[pop.culture] > maxPop) {
-            maxPop = cultureCount[pop.culture]
-            dominantCulture = pop.culture
-          }
-        }
-
-        const hexColor = this.worldData.cultures?.[dominantCulture]?.color || '#FFFFFF'
-        customColors[prov.id] = hexToRGB(hexColor)
-
-        // Find secondary culture >= 33%
-        let secondaryCulture = ''
-        for (const [culture, size] of Object.entries(cultureCount)) {
-          if (culture !== dominantCulture && size >= totalPop * 0.33) {
-            secondaryCulture = culture
-            break // Pick the first one that matches
-          }
-        }
-
-        if (secondaryCulture) {
-          const secHexColor = this.worldData.cultures?.[secondaryCulture]?.color || '#FFFFFF'
-          customSecondaryColors[prov.id] = hexToRGB(secHexColor)
-        }
-      }
-    }
+    const { customColors, customSecondaryColors } = processColorMode(this.worldData, viewName)
 
     this.colorMode = viewName
     this.map?.setColorMode(viewName, customColors, customSecondaryColors)
@@ -264,6 +186,5 @@ export class GameEngine implements IGameEngine {
     for (const entity of this.entities) {
       entity.dispose()
     }
-    this.map?.dispose()
   }
 }

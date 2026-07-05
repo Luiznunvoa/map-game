@@ -1,4 +1,7 @@
 import { unpack } from 'msgpackr'
+import { createSignal } from 'solid-js'
+
+export const [mapFetchTime, setMapFetchTime] = createSignal(0)
 
 import { networkAdapter } from '@/lib/network'
 import type { CountryData, ProvinceData, RawMapData, CultureData } from '@/types/data'
@@ -36,6 +39,7 @@ export class MapService {
     this.checkRoomId(roomId)
     if (!this.mapDataPromise) {
       this.mapDataPromise = (async () => {
+        const t0 = performance.now()
         const res = await this.http.request<void, Blob>({
           method: 'GET',
           url: `/api/map`,
@@ -144,6 +148,9 @@ export class MapService {
         }
 
         console.log(mapData);
+
+        const t1 = performance.now()
+        setMapFetchTime(t1 - t0)
 
         return mapData
       })().catch((e) => {

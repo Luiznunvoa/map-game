@@ -16,7 +16,9 @@ import FRAGMENT_SHADER from '@/shaders/globe.frag.glsl?raw'
 import VERTEX_SHADER from '@/shaders/globe.vert.glsl?raw'
 import type { NormalizedColor, ProvinceId } from '@/types/data'
 import type { Entity } from '@/types/entity.js'
+import type { GameEvent } from '@/types/game'
 import type { GlobeMapInput, MapColorMode, ProvinceGlobeConfig } from '@/types/globe'
+import type { IntersectionResult } from '@/game/scene/interaction-manager'
 
 import type { ProvinceTextures as MapTextures } from './textures.js'
 import { buildProvinceTextures } from './textures.js'
@@ -140,6 +142,16 @@ export class Map3D implements Entity {
     this.uniforms.u_selectedId.value = id
   }
 
+  public onClick(hit: IntersectionResult): GameEvent[] | void {
+    if (hit.objectName === 'province-sphere' && hit.uv) {
+      const provinceId = this.pickProvinceAt(hit.uv.x, hit.uv.y)
+      if (provinceId > 0) {
+        this.selectProvince(provinceId)
+        return [{ type: 'SELECT_PROVINCE', payload: { province_id: provinceId } }]
+      }
+    }
+  }
+
   public getProvinceCameraFocus(id: ProvinceId): { baseTheta: number; phi: number } | null {
     const stats = this.textures.stats[id]
     if (!stats || stats.pixelCount === 0) return null
@@ -175,8 +187,12 @@ export class Map3D implements Entity {
     this.uniforms.u_showRivers.value = visible ? 1 : 0
   }
 
-  public updateTime(time: number): void {
-    this.uniforms.u_time.value = time
+  public update(state: import('@/game/scene').FrameState): void {
+    this.uniforms.u_time.value = performance.now() / 1000
+    
+    if (this.group.rotation && state.camera.position.length() > 8) {
+      this.group.rotation.y += 0.001
+    }
   }
 
   public dispose(): void {
