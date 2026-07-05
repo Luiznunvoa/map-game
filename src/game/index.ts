@@ -65,6 +65,13 @@ export class GameEngine implements IGameEngine {
 
     this.interaction = new InteractionManager(this.scene, this.container)
     this.interaction.onClick(this.onClick)
+    this.interaction.onSpecialKey(this.onSpecialKey)
+  }
+
+  private onSpecialKey = (key: string): void => {
+    if (this.onEvent) {
+      this.onEvent({ type: 'SPECIAL_KEY', payload: { key } })
+    }
   }
 
   private onClick = (event: MouseEvent): void => {

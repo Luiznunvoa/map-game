@@ -26,6 +26,7 @@ export class InteractionManager {
   private dragDeltaY = 0
   private zoomDelta = 0
   private onClickCallback?: (e: MouseEvent) => void
+  private onSpecialKeyCallback?: (key: string) => void
 
   // Keyboard state
   private keys = { w: false, a: false, s: false, d: false }
@@ -53,6 +54,10 @@ export class InteractionManager {
 
   public onClick(callback: (e: MouseEvent) => void): void {
     this.onClickCallback = callback
+  }
+
+  public onSpecialKey(callback: (key: string) => void): void {
+    this.onSpecialKeyCallback = callback
   }
 
   // --- MOUSE EVENTS ---
@@ -107,6 +112,10 @@ export class InteractionManager {
 
   // --- KEYBOARD EVENTS ---
   private handleKeyDown = (e: KeyboardEvent): void => {
+    if (e.key === 'Escape') {
+      this.onSpecialKeyCallback?.(e.key)
+    }
+
     const key = e.key.toLowerCase()
     if (key in this.keys) {
       this.keys[key as keyof typeof this.keys] = true

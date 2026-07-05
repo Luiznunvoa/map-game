@@ -1,106 +1,28 @@
-import { useNavigate } from '@solidjs/router'
-import { createEffect, createSignal, onCleanup, Show } from 'solid-js'
+import { createSignal, Show } from 'solid-js'
 
 import { bg } from '@/assets'
 import { Loading } from '@/components/features/loading'
 import { Button } from '@/components/ui/button'
-import { GameEngine } from '@/game'
-import { useMapData } from '@/hooks/map/useMapData'
-import { useCameraStorage } from '@/hooks/map/useCameraStorage'
 import { useAuth } from '@/components/providers/AuthProvider'
-import type { GameEvent } from '@/types/game'
 import { FpsCounter } from '../features/rooms/fps-counter'
 import { ProvincePanel } from '../features/rooms/province-panel'
 import { MapModeSelect } from '../features/rooms/map-mode-select'
 import { ProvinceSearch } from '../features/rooms/province-search'
 import { MapSettings } from '../features/rooms/map-settings'
+import { useGameEngine } from '@/hooks/use-game-engine'
 
 export function RoomPage() {
-  const [fps, setFps] = createSignal(0)
-  const [selectedProvinceId, setSelectedProvinceId] = createSignal<number | null>(null)
   const [showBorders, setShowBorders] = createSignal(true)
   const [showRivers, setShowRivers] = createSignal(true)
-  const navigate = useNavigate()
   const { logout } = useAuth()
 
-  let containerRef!: HTMLDivElement
-  let engine: GameEngine | null = null
-
-  const { updateStoredCameraPosition, getStoredCameraPosition } = useCameraStorage()
-
-  const mapDataResource = useMapData()
-
-  function handleFrame(fps: number) {
-    setFps(fps)
-  }
-
-  const saveCameraState = () => {
-    if (engine) {
-      updateStoredCameraPosition(engine.getCameraPosition())
-    }
-  }
-
-  createEffect(() => {
-    window.addEventListener('beforeunload', saveCameraState)
-    onCleanup(() => {
-      window.removeEventListener('beforeunload', saveCameraState)
-    })
-  })
-
-  createEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        setSelectedProvinceId(null)
-        if (engine && engine.map) {
-          engine.map.selectProvince(0)
-        }
-      }
-    }
-    window.addEventListener('keydown', handleKeyDown)
-    onCleanup(() => {
-      window.removeEventListener('keydown', handleKeyDown)
-    })
-  })
-
-  createEffect(() => {
-    const data = mapDataResource()
-    if (data && containerRef && !engine) {
-      console.log("Entrando no mapa do jogo")
-
-      engine = new GameEngine(containerRef, data.worldData, data.mapData)
-
-      const savedCamera = getStoredCameraPosition()
-      if (savedCamera) {
-        engine.setCameraPosition(savedCamera.radius, savedCamera.theta, savedCamera.phi)
-      }
-
-      engine.onEvent = (event: GameEvent) => {
-        if (event.type === 'NAVIGATE') {
-          navigate(event.payload.to)
-        }
-        if (event.type === 'SELECT_PROVINCE') {
-          setSelectedProvinceId(event.payload.province_id)
-        }
-      }
-
-      engine.onFrame = (currentFps: number) => {
-        handleFrame(currentFps)
-      }
-
-      engine.setBordersVisible(showBorders())
-      engine.setRiversVisible(showRivers())
-
-      engine.start()
-    }
-  })
-
-  onCleanup(async () => {
-    if (engine) {
-      engine.stop()
-      await engine.unload()
-      engine = null
-    }
-  })
+  const {
+    fps,
+    selectedProvinceId,
+    setContainerRef,
+    mapDataResource,
+    engine,
+  } = useGameEngine({ showBorders, showRivers })
 
   return (
     <div
@@ -109,7 +31,7 @@ export function RoomPage() {
     >
       <Show when={mapDataResource()} fallback={<Loading message="LOADING MAP..." />}>
         {/* Canvas */}
-        <div ref={containerRef} class="absolute inset-0" />
+        <div ref={setContainerRef} class="absolute inset-0" />
       </Show>
 
       {/* UI Overlay */}
@@ -117,21 +39,15 @@ export function RoomPage() {
         <div class="flex flex-col gap-6 pointer-events-auto">
           <FpsCounter fps={fps} />
 
-          <MapModeSelect onModeChange={(mode) => engine?.setColorMode(mode)} />
+          <MapModeSelect onModeChange={(mode) => engine()?.setColorMode(mode)} />
 
-          <ProvinceSearch onSearch={(id) => engine?.centerOnProvince(id)} />
+          <ProvinceSearch onSearch={(id) => engine()?.centerOnProvince(id)} />
 
           <MapSettings
             showBorders={showBorders()}
             showRivers={showRivers()}
-            onBordersChange={(show) => {
-              setShowBorders(show)
-              engine?.setBordersVisible(show)
-            }}
-            onRiversChange={(show) => {
-              setShowRivers(show)
-              engine?.setRiversVisible(show)
-            }}
+            onBordersChange={setShowBorders}
+            onRiversChange={setShowRivers}
           />
         </div>
         <Button
